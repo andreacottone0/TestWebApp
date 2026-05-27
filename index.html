@@ -1678,6 +1678,314 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+
+  /* ---------- VIEW TOGGLE (Aziendale / Business pill) ---------- */
+  .view-toggle {
+    display: inline-flex;
+    background: var(--bg-elev);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .view-toggle-btn {
+    background: transparent;
+    border: none;
+    color: var(--ink-mute);
+    padding: 7px 16px;
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.18s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .view-toggle-btn:hover { color: var(--ink); }
+  .view-toggle-btn.active {
+    background: var(--biz-color, var(--amber));
+    color: var(--bg-deep);
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
+  .view-toggle-btn svg { width: 13px; height: 13px; }
+
+  /* ---------- BUSINESS CHIPS (on cards + in modals) ---------- */
+  .biz-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 8px;
+  }
+  .biz-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px 2px 6px;
+    border-radius: 10px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: rgba(255,255,255,0.04);
+    color: var(--ink-dim);
+    border: 1px solid currentColor;
+    line-height: 1.6;
+  }
+  .biz-chip::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+  .biz-chip.selectable {
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .biz-chip.selectable:hover { background: rgba(255,255,255,0.08); }
+  .biz-chip.selectable.selected { background: rgba(255,255,255,0.1); }
+  .biz-chip.selectable:not(.selected) { opacity: 0.45; }
+  .biz-chip.selectable:not(.selected):hover { opacity: 0.9; }
+
+  .biz-chips-modal-empty {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 12px;
+    color: var(--ink-mute);
+    padding: 6px 0;
+  }
+  .biz-chips-modal-empty a {
+    color: var(--amber);
+    cursor: pointer;
+    border-bottom: 1px dashed var(--amber);
+  }
+
+  /* ---------- VISTA BUSINESS — lane layout ---------- */
+  .lanes-wrap {
+    padding: 30px 36px 80px;
+    overflow-x: auto;
+    overflow-y: auto;
+    height: 100%;
+    width: 100%;
+  }
+  .lanes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 22px;
+    max-width: 100%;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .lanes-title-block {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+  }
+  .lanes-title {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+  .lanes-title em { font-style: italic; color: var(--biz-color, var(--amber)); }
+  .lanes-count {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-mute);
+    letter-spacing: 0.08em;
+  }
+
+  .lanes-grid {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+    padding-bottom: 20px;
+  }
+  .lane {
+    flex: 0 0 280px;
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 220px);
+  }
+  .lane-head {
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--line-soft);
+    background: rgba(0,0,0,0.18);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+  }
+  .lane-head::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--lane-color, var(--amber));
+    box-shadow: 0 0 12px var(--lane-color, var(--amber));
+  }
+  .lane-name {
+    flex: 1;
+    font-family: var(--serif);
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+  }
+  .lane-count {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-mute);
+    letter-spacing: 0.08em;
+    padding: 3px 7px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+  }
+  .lane-edit-btn, .lane-del-btn {
+    background: transparent;
+    border: none;
+    color: var(--ink-mute);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 3px;
+    display: flex;
+    opacity: 0;
+    transition: opacity 0.15s, color 0.15s;
+  }
+  .lane-head:hover .lane-edit-btn,
+  .lane-head:hover .lane-del-btn { opacity: 1; }
+  .lane-edit-btn:hover { color: var(--ink); }
+  .lane-del-btn:hover { color: var(--rose); }
+  .lane-edit-btn svg, .lane-del-btn svg { width: 13px; height: 13px; }
+
+  .lane-body {
+    padding: 12px 12px 8px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  .lane-body::-webkit-scrollbar { width: 5px; }
+  .lane-body::-webkit-scrollbar-track { background: transparent; }
+  .lane-body::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+
+  .lane-dept-head {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    padding: 8px 4px 6px;
+    margin-top: 6px;
+    border-top: 1px dashed rgba(255,255,255,0.06);
+  }
+  .lane-body > .lane-dept-head:first-child {
+    border-top: none;
+    margin-top: 0;
+  }
+
+  .lane-person {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.12s;
+    margin-bottom: 2px;
+  }
+  .lane-person:hover { background: rgba(255,255,255,0.04); }
+  .lane-person-text {
+    flex: 1;
+    min-width: 0;
+  }
+  .lane-person-name {
+    font-family: var(--serif);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .lane-person-role {
+    font-family: var(--sans);
+    font-size: 11px;
+    color: var(--ink-mute);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .lane-empty {
+    padding: 24px 12px;
+    text-align: center;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 12px;
+    color: var(--ink-mute);
+    line-height: 1.5;
+  }
+
+  .lane-add {
+    flex: 0 0 260px;
+    background: transparent;
+    border: 1px dashed var(--line);
+    border-radius: 4px;
+    color: var(--ink-mute);
+    padding: 22px;
+    cursor: pointer;
+    font-family: var(--sans);
+    font-size: 13px;
+    transition: all 0.18s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 140px;
+  }
+  .lane-add:hover {
+    border-color: var(--amber);
+    color: var(--amber);
+    background: var(--amber-glow);
+  }
+  .lane-add svg { width: 18px; height: 18px; }
+
+  .lanes-empty {
+    margin-top: 30px;
+    padding: 60px 30px;
+    text-align: center;
+    background: var(--bg-panel);
+    border: 1px dashed var(--line);
+    border-radius: 6px;
+  }
+  .lanes-empty-title {
+    font-family: var(--serif);
+    font-size: 24px;
+    font-weight: 400;
+    margin-bottom: 8px;
+  }
+  .lanes-empty-title em { font-style: italic; color: var(--amber); }
+  .lanes-empty-text {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 300;
+    color: var(--ink-mute);
+    font-size: 14px;
+    max-width: 420px;
+    margin: 0 auto 22px;
+    line-height: 1.55;
+  }
 </style>
 </head>
 <body>
@@ -1721,7 +2029,7 @@
     <div class="dashboard-item" id="dashboardItem"></div>
 
     <div class="business-section-header">
-      <span class="section-label">Business Units</span>
+      <span class="section-label">Aziende</span>
       <span class="section-count" id="bizCount">0</span>
     </div>
 
@@ -1729,7 +2037,7 @@
 
     <button class="add-biz-btn" id="addBizBtn">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Nuova Business Unit
+      Nuova Azienda
     </button>
 
     <div class="sidebar-footer">
@@ -1741,7 +2049,7 @@
     </div>
     <div class="sidebar-footer" style="border-top:1px solid var(--line-soft);">
       <span class="user-email" id="userEmail" title=""></span>
-      <span id="footerVersion">v1.4</span>
+      <span id="footerVersion">v1.5</span>
     </div>
   </aside>
 
@@ -1760,12 +2068,12 @@
   </main>
 </div>
 
-<!-- ========= MODAL: BUSINESS ========= -->
+<!-- ========= MODAL: AZIENDA ========= -->
 <div class="modal-overlay" id="bizModal">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-eyebrow" id="bizModalEyebrow">Nuova Business Unit</div>
-      <h3 class="modal-title">Definisci <em>l'unità</em></h3>
+      <div class="modal-eyebrow" id="bizModalEyebrow">Nuova Azienda</div>
+      <h3 class="modal-title">Definisci <em>l'azienda</em></h3>
     </div>
     <div class="modal-body">
       <div class="field">
@@ -1784,6 +2092,30 @@
     <div class="modal-footer">
       <button class="btn" id="bizModalCancel">Annulla</button>
       <button class="btn primary" id="bizModalSave">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========= MODAL: BUSINESS LINE (within an Azienda) ========= -->
+<div class="modal-overlay" id="businessLineModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-eyebrow" id="businessLineModalEyebrow">Nuovo Business</div>
+      <h3 class="modal-title">Linea di <em>business</em></h3>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label class="field-label">Nome del Business</label>
+        <input type="text" class="field-input" id="businessLineNameInput" placeholder="es. BeautyBox · SkincareLine · B2B">
+      </div>
+      <div class="field">
+        <label class="field-label">Colore</label>
+        <div class="color-picker" id="businessLineColorPicker"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" id="businessLineModalCancel">Annulla</button>
+      <button class="btn primary" id="businessLineModalSave">Salva</button>
     </div>
   </div>
 </div>
@@ -1825,6 +2157,10 @@
         <label class="field-label">Dipartimento (opzionale)</label>
         <input type="text" class="field-input" id="nodeDeptInput" placeholder="es. Operations">
       </div>
+      <div class="field">
+        <label class="field-label">Business (opzionale, multipli)</label>
+        <div id="nodeBusinessPicker"></div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn" id="nodeModalCancel">Annulla</button>
@@ -1841,7 +2177,8 @@
 
 <script>
 /* ======================================================================
-   ATLAS ORG STUDIO — MULTI-BUSINESS ORG CHART · v1.4 (Supabase + anon auth)
+   ATLAS ORG STUDIO — v1.5
+   Dual view: Vista Aziendale (org tree) + Vista Business (line lanes)
    ====================================================================== */
 
 // ---------- Supabase config ----------
@@ -1874,14 +2211,16 @@ const STORAGE_KEY = 'atlas_orgchart_state_v1';
 
 /* ----------- STATE ----------- */
 let state = {
-  businesses: [],
+  businesses: [],       // legacy name; semantically these are AZIENDE (companies)
   activeBizId: null,
-  activeView: 'business', // 'business' | 'dashboard'
+  activeView: 'tree',   // 'tree' (Vista Aziendale) | 'lanes' (Vista Business) | 'dashboard'
 };
 
 let editingBizId = null;
 let editingNodeContext = null; // { bizId, parentId, nodeId? }
 let tempNodePhoto = null;      // pending photo dataURL while node modal is open
+let tempNodeBusinessIds = [];  // pending businessIds[] while node modal is open
+let editingBusinessLine = null; // { bizId, lineId? } for the business-line manage modal
 
 // Dashboard filters (ephemeral, not persisted)
 let dashFilters = {
@@ -1954,7 +2293,8 @@ async function loadState() {
 }
 
 function migrateState() {
-  // Migrate from old cosa/come/quando arrays to new activities array
+  // v1.0 → v1.1: Migrate from cosa/come/quando arrays → activities array
+  // v1.5: Add businessIds[] to persons, ensure each azienda has businesses[]
   const migrateNode = (node) => {
     if (!node) return;
     if (!Array.isArray(node.activities)) {
@@ -1977,12 +2317,21 @@ function migrateState() {
       delete node.come;
       delete node.quando;
     }
+    if (!Array.isArray(node.businessIds)) node.businessIds = [];
     if (Array.isArray(node.children)) node.children.forEach(migrateNode);
   };
-  state.businesses.forEach(biz => migrateNode(biz.tree));
 
-  // v1.1: ensure activeView exists
-  if (!state.activeView) state.activeView = 'business';
+  // `state.businesses` is the legacy name; semantically these are AZIENDE.
+  // We don't rename the variable to avoid a big refactor — it stays internal.
+  state.businesses.forEach(biz => {
+    if (!Array.isArray(biz.businesses)) biz.businesses = [];  // business lines within this azienda
+    if (biz.tree) migrateNode(biz.tree);
+  });
+
+  // v1.1 → v1.5: activeView migration
+  // Old values: 'business' (org tree) | 'dashboard'
+  // New values: 'tree' (Vista Aziendale) | 'lanes' (Vista Business) | 'dashboard'
+  if (!state.activeView || state.activeView === 'business') state.activeView = 'tree';
 }
 
 function setSaveStatus(status) {
@@ -2168,7 +2517,7 @@ function renderSidebar() {
   state.businesses.forEach(biz => {
     const palette = PALETTE[biz.colorIdx % PALETTE.length];
     const item = document.createElement('div');
-    const isActive = biz.id === state.activeBizId && state.activeView === 'business';
+    const isActive = biz.id === state.activeBizId && state.activeView !== 'dashboard';
     item.className = 'biz-item' + (isActive ? ' active' : '');
     item.style.setProperty('--biz-color', palette.color);
     item.style.setProperty('--biz-color-glow', palette.glow);
@@ -2196,7 +2545,8 @@ function renderSidebar() {
         return;
       }
       state.activeBizId = biz.id;
-      state.activeView = 'business';
+      // Leaving dashboard? Default back to the org tree view.
+      if (state.activeView === 'dashboard') state.activeView = 'tree';
       persist();
       render();
     });
@@ -2236,10 +2586,27 @@ function renderTopbar() {
   const palette = PALETTE[biz.colorIdx % PALETTE.length];
   titleEl.innerHTML = `
     <h2 class="current-biz-name">${escapeHtml(biz.name)}</h2>
-    <span class="current-biz-tag" style="border-color: ${palette.color}40; color: ${palette.color}">${escapeHtml(biz.tag || 'Business Unit')}</span>
+    <span class="current-biz-tag" style="border-color: ${palette.color}40; color: ${palette.color}">${escapeHtml(biz.tag || 'Azienda')}</span>
+  `;
+
+  // View toggle pill: Aziendale | Business
+  const isTree  = state.activeView === 'tree';
+  const isLanes = state.activeView === 'lanes';
+  const toggleHtml = `
+    <div class="view-toggle" style="--biz-color:${palette.color}">
+      <button class="view-toggle-btn ${isTree ? 'active' : ''}" data-view="tree" title="Albero organizzativo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="2"/><circle cx="6" cy="19" r="2"/><circle cx="18" cy="19" r="2"/><line x1="12" y1="7" x2="12" y2="13"/><line x1="12" y1="13" x2="6" y2="17"/><line x1="12" y1="13" x2="18" y2="17"/></svg>
+        Aziendale
+      </button>
+      <button class="view-toggle-btn ${isLanes ? 'active' : ''}" data-view="lanes" title="Vista per linee di business">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="16" rx="1"/><rect x="17" y="4" width="4" height="16" rx="1"/></svg>
+        Business
+      </button>
+    </div>
   `;
 
   actionsEl.innerHTML = `
+    ${toggleHtml}
     ${!biz.tree ? `
       <button class="btn primary" id="addRootBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -2255,6 +2622,17 @@ function renderTopbar() {
   document.getElementById('exportJsonBtn').addEventListener('click', exportJson);
   const addRoot = document.getElementById('addRootBtn');
   if (addRoot) addRoot.addEventListener('click', () => openNodeModal({ bizId: biz.id, parentId: null, isRoot: true }));
+
+  // View toggle
+  actionsEl.querySelectorAll('.view-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const v = btn.dataset.view;
+      if (state.activeView === v) return;
+      state.activeView = v;
+      persist();
+      render();
+    });
+  });
 }
 
 /* ----------- RENDER: CANVAS ----------- */
@@ -2276,11 +2654,11 @@ function renderCanvas() {
           <line x1="90" y1="45" x2="90" y2="60"/>
           <rect x="45" y="95" width="30" height="20" rx="2" stroke-dasharray="3 3"/>
         </svg>
-        <h2 class="empty-title">Nessuna <em>business unit</em> selezionata</h2>
-        <p class="empty-text">Crea una business unit dalla barra laterale per iniziare a costruire il tuo organigramma.</p>
+        <h2 class="empty-title">Nessuna <em>azienda</em> selezionata</h2>
+        <p class="empty-text">Crea un&#39;azienda dalla barra laterale per iniziare a costruire il tuo organigramma.</p>
         <button class="btn primary" onclick="openBizModal()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Nuova Business Unit
+          Nuova Azienda
         </button>
       </div>
     `;
@@ -2645,6 +3023,7 @@ function renderTreeNode(node, biz, isRoot = false) {
           <div class="card-role">${escapeHtml(node.dept || node.role || '')}</div>
           <div class="card-name">${escapeHtml(node.name || '—')}</div>
           <div class="card-title">${escapeHtml(node.role || '')}</div>
+          ${renderBusinessChipsForNode(node, biz)}
         </div>
       </div>
       <div class="card-footer">
@@ -2829,12 +3208,12 @@ function openBizModal(bizId = null) {
     nameInput.value = biz.name;
     tagInput.value = biz.tag || '';
     selectedColorIdx = biz.colorIdx;
-    eyebrow.textContent = 'Modifica Business Unit';
+    eyebrow.textContent = 'Modifica Azienda';
   } else {
     nameInput.value = '';
     tagInput.value = '';
     selectedColorIdx = state.businesses.length % PALETTE.length;
-    eyebrow.textContent = 'Nuova Business Unit';
+    eyebrow.textContent = 'Nuova Azienda';
   }
 
   colorPicker.innerHTML = '';
@@ -2874,12 +3253,12 @@ function saveBiz() {
     biz.name = name;
     biz.tag = tag;
     biz.colorIdx = colorIdx;
-    showToast('Business Unit aggiornata');
+    showToast('Azienda aggiornata');
   } else {
     const newBiz = { id: uid(), name, tag, colorIdx, tree: null };
     state.businesses.push(newBiz);
     state.activeBizId = newBiz.id;
-    showToast('Business Unit creata');
+    showToast('Azienda creata');
   }
 
   closeBizModal();
@@ -2897,7 +3276,7 @@ function deleteBusiness(bizId) {
   }
   persist();
   render();
-  showToast('Business Unit eliminata');
+  showToast('Azienda eliminata');
 }
 
 function openNodeModal(ctx) {
@@ -2915,23 +3294,69 @@ function openNodeModal(ctx) {
     roleInput.value = node.role || '';
     deptInput.value = node.dept || '';
     tempNodePhoto = node.photo || null;
+    tempNodeBusinessIds = Array.isArray(node.businessIds) ? [...node.businessIds] : [];
     eyebrow.textContent = 'Modifica persona';
   } else {
     nameInput.value = '';
     roleInput.value = '';
     deptInput.value = '';
     tempNodePhoto = null;
+    tempNodeBusinessIds = [];
     eyebrow.textContent = ctx.isRoot ? 'Nuovo vertice' : 'Aggiungi sotto';
   }
 
   setupAvatarUploader();
   updateNodeAvatarPreview();
+  renderNodeBusinessPicker();
 
   // Refresh initials live as the user types
   nameInput.oninput = updateNodeAvatarPreview;
 
   modal.classList.add('open');
   setTimeout(() => nameInput.focus(), 50);
+}
+
+function renderNodeBusinessPicker() {
+  const container = document.getElementById('nodeBusinessPicker');
+  if (!container) return;
+  const ctx = editingNodeContext;
+  const azienda = ctx && state.businesses.find(b => b.id === ctx.bizId);
+  const lines = azienda && Array.isArray(azienda.businesses) ? azienda.businesses : [];
+
+  if (lines.length === 0) {
+    container.innerHTML = `
+      <div class="biz-chips-modal-empty">
+        Nessun business definito per questa azienda. <a id="quickAddBizLineLink">Aggiungine uno</a> per poter taggare le persone.
+      </div>
+    `;
+    const link = document.getElementById('quickAddBizLineLink');
+    if (link) {
+      link.addEventListener('click', () => {
+        // We can't open another modal on top reliably — close this one,
+        // open the business-line modal, then leave the user to re-edit the person.
+        closeNodeModal();
+        openBusinessLineModal({ bizId: ctx.bizId });
+      });
+    }
+    return;
+  }
+
+  const chips = lines.map(line => {
+    const p = PALETTE[(line.colorIdx ?? 0) % PALETTE.length];
+    const selected = tempNodeBusinessIds.includes(line.id);
+    return `<span class="biz-chip selectable ${selected ? 'selected' : ''}" style="color:${p.color}" data-line-id="${line.id}">${escapeHtml(line.name)}</span>`;
+  }).join('');
+
+  container.innerHTML = `<div class="biz-chips">${chips}</div>`;
+  container.querySelectorAll('[data-line-id]').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const id = chip.dataset.lineId;
+      const idx = tempNodeBusinessIds.indexOf(id);
+      if (idx >= 0) tempNodeBusinessIds.splice(idx, 1);
+      else tempNodeBusinessIds.push(id);
+      chip.classList.toggle('selected');
+    });
+  });
 }
 
 function updateNodeAvatarPreview() {
@@ -2998,6 +3423,7 @@ function closeNodeModal() {
   document.getElementById('nodeModal').classList.remove('open');
   editingNodeContext = null;
   tempNodePhoto = null;
+  tempNodeBusinessIds = [];
 }
 
 function saveNode() {
@@ -3015,6 +3441,7 @@ function saveNode() {
   if (!biz) return;
 
   const photo = tempNodePhoto || null;
+  const businessIds = [...tempNodeBusinessIds];
 
   if (ctx.nodeId) {
     // EDIT
@@ -3023,16 +3450,17 @@ function saveNode() {
     node.role = role;
     node.dept = dept;
     node.photo = photo;
+    node.businessIds = businessIds;
     showToast('Persona aggiornata');
   } else if (ctx.isRoot) {
     // CREATE ROOT
-    biz.tree = { id: uid(), name, role, dept, photo, activities: [], children: [] };
+    biz.tree = { id: uid(), name, role, dept, photo, businessIds, activities: [], children: [] };
     showToast('Vertice creato');
   } else {
     // ADD CHILD
     const parent = findNode(biz.tree, ctx.parentId);
     if (!parent.children) parent.children = [];
-    parent.children.push({ id: uid(), name, role, dept, photo, activities: [], children: [] });
+    parent.children.push({ id: uid(), name, role, dept, photo, businessIds, activities: [], children: [] });
     showToast('Persona aggiunta');
   }
 
@@ -3167,6 +3595,275 @@ function reorderNode(bizId, nodeId, parentId, insertIdx) {
   persist();
   render();
   showToast('Ordine aggiornato');
+}
+
+/* ======================================================================
+   BUSINESS LINES — manage list within an azienda (CRUD via modal)
+   ====================================================================== */
+
+function openBusinessLineModal({ bizId, lineId = null }) {
+  editingBusinessLine = { bizId, lineId };
+  const modal = document.getElementById('businessLineModal');
+  const eyebrow = document.getElementById('businessLineModalEyebrow');
+  const nameInput = document.getElementById('businessLineNameInput');
+  const colorPicker = document.getElementById('businessLineColorPicker');
+
+  const azienda = state.businesses.find(b => b.id === bizId);
+  if (!azienda) return;
+  if (!Array.isArray(azienda.businesses)) azienda.businesses = [];
+
+  let selectedColorIdx;
+  if (lineId) {
+    const line = azienda.businesses.find(l => l.id === lineId);
+    nameInput.value = line.name;
+    selectedColorIdx = line.colorIdx ?? 0;
+    eyebrow.textContent = 'Modifica business';
+  } else {
+    nameInput.value = '';
+    // Pick a colour that isn't already used in this azienda, if possible
+    const usedIdx = new Set(azienda.businesses.map(l => l.colorIdx ?? 0));
+    selectedColorIdx = 0;
+    for (let i = 0; i < PALETTE.length; i++) {
+      if (!usedIdx.has(i)) { selectedColorIdx = i; break; }
+    }
+    eyebrow.textContent = 'Nuovo business';
+  }
+
+  colorPicker.innerHTML = '';
+  PALETTE.forEach((p, i) => {
+    const sw = document.createElement('div');
+    sw.className = 'color-swatch' + (i === selectedColorIdx ? ' selected' : '');
+    sw.style.background = p.color;
+    sw.dataset.colorIdx = i;
+    sw.addEventListener('click', () => {
+      colorPicker.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+      sw.classList.add('selected');
+    });
+    colorPicker.appendChild(sw);
+  });
+
+  modal.classList.add('open');
+  setTimeout(() => nameInput.focus(), 50);
+}
+
+function closeBusinessLineModal() {
+  document.getElementById('businessLineModal').classList.remove('open');
+  editingBusinessLine = null;
+}
+
+function saveBusinessLine() {
+  if (!editingBusinessLine) return;
+  const { bizId, lineId } = editingBusinessLine;
+  const name = document.getElementById('businessLineNameInput').value.trim();
+  const colorIdx = parseInt(document.querySelector('#businessLineColorPicker .selected')?.dataset.colorIdx || 0);
+
+  if (!name) {
+    document.getElementById('businessLineNameInput').focus();
+    return;
+  }
+
+  const azienda = state.businesses.find(b => b.id === bizId);
+  if (!azienda) return;
+  if (!Array.isArray(azienda.businesses)) azienda.businesses = [];
+
+  if (lineId) {
+    const line = azienda.businesses.find(l => l.id === lineId);
+    line.name = name;
+    line.colorIdx = colorIdx;
+    showToast('Business aggiornato');
+  } else {
+    azienda.businesses.push({ id: uid(), name, colorIdx });
+    showToast('Business creato');
+  }
+
+  closeBusinessLineModal();
+  persist();
+  render();
+}
+
+function deleteBusinessLine(bizId, lineId) {
+  const azienda = state.businesses.find(b => b.id === bizId);
+  if (!azienda || !Array.isArray(azienda.businesses)) return;
+  const line = azienda.businesses.find(l => l.id === lineId);
+  if (!line) return;
+  if (!confirm(`Eliminare il business "${line.name}"? Le persone resteranno (ma perderanno il tag).`)) return;
+
+  azienda.businesses = azienda.businesses.filter(l => l.id !== lineId);
+  // Strip the deleted ID from every person tagged with it
+  const stripFromTree = (node) => {
+    if (!node) return;
+    if (Array.isArray(node.businessIds)) {
+      node.businessIds = node.businessIds.filter(id => id !== lineId);
+    }
+    (node.children || []).forEach(stripFromTree);
+  };
+  if (azienda.tree) stripFromTree(azienda.tree);
+
+  persist();
+  render();
+  showToast('Business eliminato');
+}
+
+/* ======================================================================
+   VISTA BUSINESS — lane columns (one per business line)
+   ====================================================================== */
+
+function renderLanesView() {
+  const canvas = document.getElementById('canvas');
+  canvas.innerHTML = '';
+
+  const azienda = state.businesses.find(b => b.id === state.activeBizId);
+  if (!azienda) return;
+
+  const palette = PALETTE[azienda.colorIdx % PALETTE.length];
+  canvas.style.setProperty('--biz-color', palette.color);
+
+  const lines = Array.isArray(azienda.businesses) ? azienda.businesses : [];
+
+  // ---------- header ----------
+  const wrap = document.createElement('div');
+  wrap.className = 'lanes-wrap';
+
+  if (lines.length === 0) {
+    wrap.innerHTML = `
+      <div class="lanes-header">
+        <div class="lanes-title-block">
+          <h2 class="lanes-title">Vista <em>Business</em></h2>
+          <span class="lanes-count">${escapeHtml(azienda.name)}</span>
+        </div>
+      </div>
+      <div class="lanes-empty">
+        <h3 class="lanes-empty-title">Nessun <em>business</em> definito</h3>
+        <p class="lanes-empty-text">
+          Aggiungi le linee di business della tua azienda (es. BeautyBox, B2B Partnerships, SkincareLine).
+          Poi dalla Vista Aziendale potrai taggare ogni persona con i business su cui lavora.
+        </p>
+        <button class="btn primary" id="lanesEmptyAddBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Aggiungi il primo business
+        </button>
+      </div>
+    `;
+    canvas.appendChild(wrap);
+    document.getElementById('lanesEmptyAddBtn').addEventListener('click', () => {
+      openBusinessLineModal({ bizId: azienda.id });
+    });
+    return;
+  }
+
+  // Index all persons in the tree, with their business tags
+  const allPersons = [];
+  const walkTree = (node) => {
+    if (!node) return;
+    allPersons.push(node);
+    (node.children || []).forEach(walkTree);
+  };
+  walkTree(azienda.tree);
+
+  // Group lines into lanes with person lists, grouped by dept
+  const lanes = lines.map(line => {
+    const persons = allPersons.filter(p =>
+      Array.isArray(p.businessIds) && p.businessIds.includes(line.id)
+    );
+    // Group by dept
+    const byDept = new Map();
+    persons.forEach(p => {
+      const dept = (p.dept || p.role || '—').trim() || '—';
+      if (!byDept.has(dept)) byDept.set(dept, []);
+      byDept.get(dept).push(p);
+    });
+    // Sort dept entries alphabetically
+    const groups = [...byDept.entries()].sort(([a], [b]) => a.localeCompare(b));
+    return { line, persons, groups };
+  });
+
+  const totalTagged = lanes.reduce((acc, l) => acc + l.persons.length, 0);
+
+  wrap.innerHTML = `
+    <div class="lanes-header">
+      <div class="lanes-title-block">
+        <h2 class="lanes-title">Vista <em>Business</em></h2>
+        <span class="lanes-count">${escapeHtml(azienda.name)} · ${lines.length} business · ${totalTagged} assegnazioni</span>
+      </div>
+      <button class="btn" id="lanesManageBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Aggiungi business
+      </button>
+    </div>
+    <div class="lanes-grid" id="lanesGrid"></div>
+  `;
+  canvas.appendChild(wrap);
+
+  document.getElementById('lanesManageBtn').addEventListener('click', () => {
+    openBusinessLineModal({ bizId: azienda.id });
+  });
+
+  const grid = document.getElementById('lanesGrid');
+
+  lanes.forEach(({ line, persons, groups }) => {
+    const p = PALETTE[(line.colorIdx ?? 0) % PALETTE.length];
+    const laneEl = document.createElement('div');
+    laneEl.className = 'lane';
+    laneEl.style.setProperty('--lane-color', p.color);
+    laneEl.innerHTML = `
+      <div class="lane-head">
+        <span class="lane-name" style="color:${p.color}">${escapeHtml(line.name)}</span>
+        <span class="lane-count">${String(persons.length).padStart(2,'0')}</span>
+        <button class="lane-edit-btn" title="Modifica business">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="lane-del-btn" title="Elimina business">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
+        </button>
+      </div>
+      <div class="lane-body">
+        ${persons.length === 0 ? `
+          <div class="lane-empty">
+            Nessuna persona ancora taggata.<br>Dalla Vista Aziendale, apri la card di una persona → seleziona "${escapeHtml(line.name)}".
+          </div>
+        ` : groups.map(([dept, people]) => `
+          <div class="lane-dept-head">${escapeHtml(dept)}</div>
+          ${people.map(person => `
+            <div class="lane-person" data-node-id="${person.id}">
+              ${renderAvatar(person, p, 'sm')}
+              <div class="lane-person-text">
+                <div class="lane-person-name">${escapeHtml(person.name || '—')}</div>
+                <div class="lane-person-role">${escapeHtml(person.role || '')}</div>
+              </div>
+            </div>
+          `).join('')}
+        `).join('')}
+      </div>
+    `;
+    grid.appendChild(laneEl);
+
+    laneEl.querySelector('.lane-edit-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      openBusinessLineModal({ bizId: azienda.id, lineId: line.id });
+    });
+    laneEl.querySelector('.lane-del-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      deleteBusinessLine(azienda.id, line.id);
+    });
+    // Click a person to jump back to Vista Aziendale and scroll to that card
+    laneEl.querySelectorAll('.lane-person').forEach(personEl => {
+      personEl.addEventListener('click', () => {
+        jumpToNode(azienda.id, personEl.dataset.nodeId);
+      });
+    });
+  });
+
+  // "+" lane at the end to add a new business line
+  const addLane = document.createElement('button');
+  addLane.className = 'lane-add';
+  addLane.innerHTML = `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Aggiungi business
+  `;
+  addLane.addEventListener('click', () => {
+    openBusinessLineModal({ bizId: azienda.id });
+  });
+  grid.appendChild(addLane);
 }
 
 /* ======================================================================
@@ -3462,7 +4159,7 @@ function wireDashboardInteractions(root) {
 }
 
 function jumpToNode(bizId, nodeId) {
-  state.activeView = 'business';
+  state.activeView = 'tree';
   state.activeBizId = bizId;
   persist();
   render();
@@ -3563,6 +4260,25 @@ function getInitials(name) {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
+/**
+ * Render the small colored "biz-chip" badges below a person card, one per
+ * business line the person is tagged with. Returns empty string if none.
+ */
+function renderBusinessChipsForNode(node, azienda) {
+  const ids = Array.isArray(node.businessIds) ? node.businessIds : [];
+  if (!ids.length) return '';
+  const lines = Array.isArray(azienda.businesses) ? azienda.businesses : [];
+  const chips = ids
+    .map(id => lines.find(l => l.id === id))
+    .filter(Boolean)
+    .map(line => {
+      const p = PALETTE[(line.colorIdx ?? 0) % PALETTE.length];
+      return `<span class="biz-chip" style="color:${p.color}">${escapeHtml(line.name)}</span>`;
+    })
+    .join('');
+  return chips ? `<div class="biz-chips">${chips}</div>` : '';
+}
+
 function renderAvatar(node, palette, sizeClass = '') {
   const color = palette ? palette.color : 'var(--amber)';
   if (node && node.photo) {
@@ -3612,13 +4328,19 @@ function render() {
   renderTopbar();
   const canvas = document.getElementById('canvas');
   const wrap = document.querySelector('.canvas-wrap');
+  canvas.classList.remove('dashboard-mode', 'lanes-mode');
+  wrap.classList.remove('dashboard-mode', 'lanes-mode');
+
   if (state.activeView === 'dashboard') {
     canvas.classList.add('dashboard-mode');
     wrap.classList.add('dashboard-mode');
     renderDashboard();
+  } else if (state.activeView === 'lanes') {
+    canvas.classList.add('lanes-mode');
+    wrap.classList.add('lanes-mode');
+    renderLanesView();
   } else {
-    canvas.classList.remove('dashboard-mode');
-    wrap.classList.remove('dashboard-mode');
+    // 'tree' — Vista Aziendale (default)
     renderCanvas();
   }
 }
@@ -3629,6 +4351,15 @@ document.getElementById('bizModalCancel').addEventListener('click', closeBizModa
 document.getElementById('bizModalSave').addEventListener('click', saveBiz);
 document.getElementById('nodeModalCancel').addEventListener('click', closeNodeModal);
 document.getElementById('nodeModalSave').addEventListener('click', saveNode);
+document.getElementById('businessLineModalCancel').addEventListener('click', closeBusinessLineModal);
+document.getElementById('businessLineModalSave').addEventListener('click', saveBusinessLine);
+document.getElementById('businessLineModal').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && e.target.tagName === 'INPUT') saveBusinessLine();
+  if (e.key === 'Escape') closeBusinessLineModal();
+});
+document.getElementById('businessLineModal').addEventListener('click', (e) => {
+  if (e.target.id === 'businessLineModal') closeBusinessLineModal();
+});
 
 // Enter key in modals
 document.getElementById('bizModal').addEventListener('keydown', (e) => {
