@@ -1,0 +1,3756 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atlas — Multi-Business Org Chart</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400&family=JetBrains+Mono:wght@300;400;500;600&family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --bg-deep: #2a2620;
+    --bg-panel: #221e18;
+    --bg-elev: #3a342c;
+    --bg-elev-2: #463f35;
+    --line: #524a3e;
+    --line-soft: #3d362d;
+    --ink: #f8f2e6;
+    --ink-dim: #c2b8a4;
+    --ink-mute: #8a7f6c;
+    --amber: #e8a04a;
+    --amber-deep: #c47c1f;
+    --amber-glow: rgba(232, 160, 74, 0.18);
+    --rose: #d97a6c;
+    --sage: #8aa17a;
+    --azure: #6f9ab8;
+    --plum: #a87aa8;
+    --citrus: #c9b54a;
+    --teal: #5fa3a3;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+    --shadow-md: 0 8px 24px rgba(0,0,0,0.5);
+    --shadow-lg: 0 24px 60px rgba(0,0,0,0.6);
+    --serif: 'Fraunces', Georgia, serif;
+    --sans: 'Inter Tight', -apple-system, sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height:100%; overflow:hidden; }
+  body {
+    font-family: var(--sans);
+    background: var(--bg-deep);
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 20% 0%, rgba(232,160,74,0.08), transparent 70%),
+      radial-gradient(ellipse 60% 40% at 80% 100%, rgba(111,154,184,0.05), transparent 70%);
+  }
+
+  /* Grain texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.4;
+    z-index: 1000;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.05 0 0 0 0 0.05 0 0 0 0 0.05 0 0 0 0.15 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    mix-blend-mode: overlay;
+  }
+
+  .app {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    height: 100vh;
+  }
+
+  /* ---------- SIDEBAR ---------- */
+  .sidebar {
+    background: var(--bg-panel);
+    border-right: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    z-index: 10;
+  }
+
+  .brand {
+    padding: 28px 24px 20px;
+    border-bottom: 1px solid var(--line-soft);
+    position: relative;
+  }
+  .brand-mark {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--amber);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .brand-mark::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--amber);
+    border-radius: 50%;
+    box-shadow: 0 0 12px var(--amber);
+  }
+  .brand-title {
+    font-family: var(--serif);
+    font-size: 32px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .brand-title em {
+    font-style: italic;
+    font-weight: 300;
+    color: var(--amber);
+  }
+  .brand-sub {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 300;
+    color: var(--ink-mute);
+    font-size: 13px;
+    margin-top: 8px;
+    letter-spacing: 0.01em;
+  }
+
+  .business-section-header {
+    padding: 22px 24px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-mute);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+  .section-count {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-mute);
+  }
+
+  .business-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 12px 12px;
+  }
+  .business-list::-webkit-scrollbar { width: 6px; }
+  .business-list::-webkit-scrollbar-track { background: transparent; }
+  .business-list::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+
+  .biz-item {
+    padding: 14px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-bottom: 4px;
+    border: 1px solid transparent;
+    transition: all 0.18s ease;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .biz-item:hover {
+    background: var(--bg-elev);
+    border-color: var(--line-soft);
+  }
+  .biz-item.active {
+    background: var(--bg-elev);
+    border-color: var(--line);
+  }
+  .biz-item.active::before {
+    content: '';
+    position: absolute;
+    left: -12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 28px;
+    background: var(--biz-color, var(--amber));
+    border-radius: 0 2px 2px 0;
+    box-shadow: 0 0 16px var(--biz-color, var(--amber));
+  }
+
+  .biz-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--biz-color, var(--amber));
+    flex-shrink: 0;
+    box-shadow: 0 0 10px var(--biz-color-glow, var(--amber-glow));
+  }
+  .biz-info { flex: 1; min-width: 0; }
+  .biz-name {
+    font-family: var(--serif);
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .biz-meta {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-mute);
+    letter-spacing: 0.05em;
+    margin-top: 3px;
+  }
+  .biz-actions {
+    display: none;
+    gap: 4px;
+  }
+  .biz-item:hover .biz-actions { display: flex; }
+  .biz-icon-btn {
+    background: transparent;
+    border: none;
+    color: var(--ink-mute);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .biz-icon-btn:hover { background: var(--line); color: var(--ink); }
+  .biz-icon-btn.danger:hover { color: var(--rose); }
+
+  .add-biz-btn {
+    margin: 12px;
+    padding: 14px;
+    background: transparent;
+    border: 1px dashed var(--line);
+    border-radius: 4px;
+    color: var(--ink-dim);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.18s;
+  }
+  .add-biz-btn:hover {
+    border-color: var(--amber);
+    color: var(--amber);
+    background: var(--amber-glow);
+  }
+
+  .sidebar-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--line-soft);
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-mute);
+    letter-spacing: 0.05em;
+    display: flex;
+    justify-content: space-between;
+  }
+  .save-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .save-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--sage);
+    box-shadow: 0 0 8px var(--sage);
+  }
+  .save-dot.saving { background: var(--citrus); box-shadow: 0 0 8px var(--citrus); animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity: 0.4; } }
+
+  /* ---------- MAIN CANVAS ---------- */
+  .main {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .topbar {
+    padding: 22px 36px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-panel);
+    z-index: 5;
+  }
+  .topbar-title {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+  }
+  .current-biz-name {
+    font-family: var(--serif);
+    font-size: 30px;
+    font-weight: 400;
+    letter-spacing: -0.015em;
+  }
+  .current-biz-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--ink-mute);
+    padding: 4px 8px;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+  }
+
+  .topbar-actions { display: flex; gap: 10px; align-items: center; }
+  .btn {
+    background: var(--bg-elev);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 9px 16px;
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    border-radius: 3px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    transition: all 0.15s;
+  }
+  .btn:hover { border-color: var(--ink-mute); background: var(--bg-elev-2); }
+  .btn.primary {
+    background: var(--amber);
+    border-color: var(--amber);
+    color: var(--bg-deep);
+    font-weight: 600;
+  }
+  .btn.primary:hover { background: var(--amber-deep); border-color: var(--amber-deep); }
+  .btn svg { width: 14px; height: 14px; }
+
+  .canvas-wrap {
+    flex: 1;
+    overflow: auto;
+    position: relative;
+    background: #1f1c17;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(255,255,255,0.04) 1px, transparent 0);
+    background-size: 24px 24px;
+  }
+  .canvas-wrap::-webkit-scrollbar { width: 10px; height: 10px; }
+  .canvas-wrap::-webkit-scrollbar-track { background: var(--bg-deep); }
+  .canvas-wrap::-webkit-scrollbar-thumb { background: var(--line); border-radius: 5px; }
+  .canvas-wrap::-webkit-scrollbar-thumb:hover { background: var(--ink-mute); }
+
+  .canvas {
+    min-width: 100%;
+    min-height: 100%;
+    padding: 60px;
+    position: relative;
+  }
+
+  /* ---------- ORG TREE ---------- */
+  .tree {
+    display: flex;
+    justify-content: center;
+    padding-top: 20px;
+  }
+
+  .tree-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+
+  .tree-children-wrap {
+    display: flex;
+    gap: 32px;
+    margin-top: 56px;
+    position: relative;
+  }
+
+  /* Vertical line from parent down */
+  .tree-children-wrap::before {
+    content: '';
+    position: absolute;
+    top: -32px;
+    left: 50%;
+    width: 1px;
+    height: 28px;
+    background: #5e5547;
+  }
+
+  /* Horizontal connector across siblings */
+  .tree-children-wrap::after {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: var(--connector-left, 0);
+    right: var(--connector-right, 0);
+    height: 1px;
+    background: #5e5547;
+  }
+  .tree-children-wrap.single-child::after { display: none; }
+
+  /* Vertical line from horizontal connector to each child */
+  .tree-child {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .tree-child::before {
+    content: '';
+    position: absolute;
+    top: -28px;
+    left: 50%;
+    width: 1px;
+    height: 28px;
+    background: #5e5547;
+  }
+
+  /* ---------- CARD ---------- */
+  .node-card {
+    background: #4a4338;
+    border: 1px solid #5e5547;
+    border-radius: 4px;
+    width: 240px;
+    cursor: grab;
+    user-select: none;
+    transition: width 0.25s ease, all 0.18s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
+  }
+  .node-card.expanded {
+    width: 460px;
+    cursor: default;
+  }
+  .node-card:hover {
+    border-color: var(--biz-color, var(--amber));
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+  .node-card:active { cursor: grabbing; }
+  .node-card.dragging {
+    opacity: 0.4;
+    transform: rotate(-1deg) scale(0.98);
+  }
+  .node-card.drag-over {
+    border-color: var(--amber);
+    box-shadow: 0 0 0 2px var(--amber-glow), var(--shadow-md);
+    transform: scale(1.03);
+  }
+  .node-card.is-root .card-color-bar {
+    height: 4px;
+    background: var(--biz-color, var(--amber));
+  }
+
+  .card-color-bar {
+    height: 2px;
+    background: var(--biz-color, var(--amber));
+    opacity: 0.6;
+  }
+
+  .card-body {
+    padding: 16px 18px 14px;
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 4px;
+  }
+  .card-role {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--ink-mute);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .card-name {
+    font-family: var(--serif);
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    color: var(--ink);
+  }
+  .card-title {
+    font-family: var(--sans);
+    font-size: 12px;
+    color: var(--ink-dim);
+    margin-top: 4px;
+    font-weight: 400;
+  }
+
+  .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .card-id {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--ink-mute);
+    letter-spacing: 0.05em;
+  }
+  .card-actions {
+    display: flex;
+    gap: 2px;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .node-card:hover .card-actions { opacity: 1; }
+  .card-icon-btn {
+    background: transparent;
+    border: none;
+    color: var(--ink-mute);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 3px;
+    display: flex;
+  }
+  .card-icon-btn:hover { background: var(--line); color: var(--ink); }
+  .card-icon-btn.danger:hover { color: var(--rose); }
+  .card-icon-btn.add:hover { color: var(--sage); }
+
+  .card-icon-btn svg { width: 13px; height: 13px; }
+
+  /* ---------- CARD EXPANSION ---------- */
+  .card-icon-btn.toggle-expand {
+    transition: transform 0.25s ease;
+  }
+  .node-card.expanded .card-icon-btn.toggle-expand {
+    transform: rotate(180deg);
+    color: var(--biz-color, var(--amber));
+  }
+
+  .card-actions { opacity: 1 !important; } /* always visible to show expand toggle */
+  .card-actions .card-icon-btn:not(.toggle-expand) {
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .node-card:hover .card-actions .card-icon-btn:not(.toggle-expand) {
+    opacity: 1;
+  }
+  .node-card.expanded .card-actions .card-icon-btn:not(.toggle-expand) {
+    opacity: 1;
+  }
+
+  .card-expansion {
+    display: none;
+    padding: 0 0 14px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    margin-top: -2px;
+    cursor: default;
+  }
+  .node-card.expanded .card-expansion { display: block; animation: expandIn 0.25s ease; }
+  @keyframes expandIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---------- ACTIVITY TABLE ---------- */
+  .activity-table {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .activity-header {
+    display: grid;
+    grid-template-columns: 1.4fr 1.2fr 1fr 24px;
+    gap: 0;
+    padding: 12px 14px 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .activity-header > div {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    padding: 0 6px;
+  }
+  .activity-header .col-cosa { color: var(--ink); border-left: 2px solid var(--biz-color, var(--amber)); padding-left: 8px; }
+  .activity-header .col-come { color: var(--ink-dim); }
+  .activity-header .col-quando { color: var(--biz-color, var(--amber)); }
+
+  .activity-rows {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .activity-row {
+    display: grid;
+    grid-template-columns: 1.4fr 1.2fr 1fr 24px;
+    gap: 0;
+    padding: 8px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    align-items: stretch;
+    transition: background 0.12s;
+    position: relative;
+  }
+  .activity-row:hover { background: rgba(0,0,0,0.18); }
+  .activity-row:last-child { border-bottom: none; }
+
+  .activity-row > div {
+    padding: 4px 6px;
+    font-size: 12px;
+    line-height: 1.4;
+    display: flex;
+    align-items: center;
+  }
+
+  .activity-cell {
+    word-break: break-word;
+    color: var(--ink);
+    cursor: text;
+    border-radius: 2px;
+    min-height: 22px;
+  }
+  .activity-cell:hover {
+    background: rgba(255,255,255,0.04);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+  }
+  .activity-cell.cell-cosa {
+    font-weight: 500;
+    border-left: 2px solid var(--biz-color, var(--amber));
+    padding-left: 8px;
+  }
+  .activity-cell.cell-come {
+    color: var(--ink-dim);
+    font-style: italic;
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: 12.5px;
+  }
+
+  /* Inline edit input */
+  .activity-cell.editing {
+    padding: 0;
+    background: rgba(0,0,0,0.3);
+    box-shadow: inset 0 0 0 1px var(--biz-color, var(--amber));
+  }
+  .activity-cell input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: inherit;
+    font-style: inherit;
+    font-weight: inherit;
+    padding: 4px 6px;
+    outline: none;
+  }
+  .activity-cell.cell-cosa input { padding-left: 8px; }
+
+  /* Quando cell with date + recurrence */
+  .cell-quando {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 2px;
+    padding: 4px 6px !important;
+  }
+  .quando-date {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    color: var(--biz-color, var(--amber));
+    cursor: pointer;
+    padding: 1px 4px;
+    border-radius: 2px;
+  }
+  .quando-date:hover { background: rgba(255,255,255,0.05); }
+  .quando-date.overdue { color: var(--rose); }
+  .quando-date.soon { color: var(--citrus); }
+  .quando-date.empty { color: var(--ink-mute); font-style: italic; font-family: var(--serif); }
+
+  .quando-recur {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    padding: 1px 5px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    cursor: pointer;
+    line-height: 1.4;
+    background: transparent;
+    transition: all 0.15s;
+  }
+  .quando-recur:hover { border-color: var(--biz-color, var(--amber)); color: var(--biz-color, var(--amber)); }
+  .quando-recur.active {
+    border-color: var(--biz-color, var(--amber));
+    color: var(--biz-color, var(--amber));
+    background: rgba(255,255,255,0.04);
+  }
+
+  .quando-edit-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+  }
+  .quando-date-input {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--biz-color, var(--amber));
+    border-radius: 2px;
+    padding: 2px 4px;
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 11px;
+    color-scheme: dark;
+    width: 100%;
+  }
+
+  .recur-popover {
+    position: absolute;
+    background: #2a2620;
+    border: 1px solid #5e5547;
+    border-radius: 3px;
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 50;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    min-width: 110px;
+  }
+  .recur-popover button {
+    background: transparent;
+    border: none;
+    color: var(--ink-dim);
+    padding: 5px 10px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    text-align: left;
+    border-radius: 2px;
+  }
+  .recur-popover button:hover { background: rgba(255,255,255,0.05); color: var(--ink); }
+  .recur-popover button.selected { color: var(--biz-color, var(--amber)); background: rgba(255,255,255,0.04); }
+
+  .activity-remove {
+    background: transparent;
+    border: none;
+    color: var(--ink-mute);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 2px;
+    opacity: 0;
+    transition: opacity 0.15s, color 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .activity-row:hover .activity-remove { opacity: 1; }
+  .activity-remove:hover { color: var(--rose); }
+  .activity-remove svg { width: 11px; height: 11px; }
+
+  .activity-empty {
+    padding: 16px 14px;
+    text-align: center;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 12px;
+    color: var(--ink-mute);
+  }
+
+  .activity-add-row {
+    padding: 10px 14px;
+    border-top: 1px dashed rgba(255,255,255,0.1);
+  }
+  .activity-add-btn {
+    width: 100%;
+    background: transparent;
+    border: 1px dashed rgba(255,255,255,0.15);
+    color: var(--ink-dim);
+    padding: 8px;
+    border-radius: 3px;
+    font-family: var(--sans);
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.15s;
+  }
+  .activity-add-btn:hover {
+    border-color: var(--biz-color, var(--amber));
+    color: var(--biz-color, var(--amber));
+    background: rgba(255,255,255,0.02);
+  }
+  .activity-add-btn svg { width: 12px; height: 12px; }
+
+  /* ---------- EMPTY STATE ---------- */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    padding: 40px;
+  }
+  .empty-svg {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 28px;
+    opacity: 0.4;
+  }
+  .empty-title {
+    font-family: var(--serif);
+    font-size: 32px;
+    font-weight: 400;
+    letter-spacing: -0.015em;
+    margin-bottom: 8px;
+  }
+  .empty-title em { font-style: italic; color: var(--amber); }
+  .empty-text {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 300;
+    color: var(--ink-mute);
+    font-size: 15px;
+    max-width: 380px;
+    margin-bottom: 24px;
+  }
+
+  /* ---------- MODAL ---------- */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 7, 5, 0.7);
+    backdrop-filter: blur(8px);
+    z-index: 1001;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .modal {
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    width: 100%;
+    max-width: 460px;
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    animation: slideUp 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  @keyframes slideUp {
+    from { transform: translateY(12px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .modal-header {
+    padding: 24px 28px 12px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .modal-eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--amber);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .modal-title {
+    font-family: var(--serif);
+    font-size: 26px;
+    font-weight: 400;
+    letter-spacing: -0.015em;
+  }
+  .modal-title em { font-style: italic; }
+
+  .modal-body { padding: 22px 28px; }
+
+  .field { margin-bottom: 16px; }
+  .field-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-mute);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 7px;
+    display: block;
+  }
+  .field-input {
+    width: 100%;
+    background: var(--bg-deep);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 11px 14px;
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 14px;
+    transition: border-color 0.15s;
+  }
+  .field-input:focus {
+    outline: none;
+    border-color: var(--amber);
+    box-shadow: 0 0 0 3px var(--amber-glow);
+  }
+  .field-input::placeholder { color: var(--ink-mute); }
+
+  .color-picker {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+  }
+  .color-swatch {
+    aspect-ratio: 1;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .color-swatch:hover { transform: scale(1.1); }
+  .color-swatch.selected {
+    border-color: var(--ink);
+    transform: scale(1.1);
+  }
+  .color-swatch.selected::after {
+    content: '✓';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--bg-deep);
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .modal-footer {
+    padding: 18px 28px;
+    border-top: 1px solid var(--line-soft);
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+
+  /* Drop zone indicator */
+  .drop-indicator {
+    position: absolute;
+    pointer-events: none;
+    border: 2px dashed var(--amber);
+    border-radius: 4px;
+    background: var(--amber-glow);
+    z-index: 100;
+    display: none;
+  }
+
+  /* Confirmation toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--bg-elev-2);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 12px 20px;
+    border-radius: 3px;
+    font-family: var(--sans);
+    font-size: 13px;
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  .toast-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--sage);
+  }
+
+  /* Drag-to-reparent visual hint badge */
+  .drop-hint {
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--amber);
+    color: var(--bg-deep);
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 2px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .node-card.drag-over .drop-hint { opacity: 1; }
+  .node-card.drag-over.drop-side .drop-hint { opacity: 0; }
+
+  /* ---------- SIBLING REORDER INDICATOR ---------- */
+  .reorder-indicator {
+    position: fixed;
+    width: 4px;
+    background: var(--amber);
+    box-shadow: 0 0 16px var(--amber), 0 0 6px var(--amber);
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 9999;
+    display: none;
+    animation: reorderPulse 0.7s ease-in-out infinite;
+  }
+  @keyframes reorderPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.65; }
+  }
+
+  /* While dragging, suppress the "drop under" highlight at the same level */
+  body.dragging-node .node-card.drag-over { 
+    border-color: #5e5547 !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3) !important;
+    transform: none !important;
+  }
+  body.dragging-node .node-card.drag-over .drop-hint {
+    opacity: 0;
+  }
+  /* Re-enable highlight only when the card itself is the drop target (not edge zones) */
+  body.dragging-node .node-card.drag-over.drop-center {
+    border-color: var(--amber) !important;
+    box-shadow: 0 0 0 2px var(--amber-glow), var(--shadow-md) !important;
+    transform: scale(1.03) !important;
+  }
+  body.dragging-node .node-card.drag-over.drop-center .drop-hint {
+    opacity: 1;
+  }
+
+  /* ---------- DASHBOARD ITEM (sidebar) ---------- */
+  .dashboard-item {
+    margin: 6px 12px 16px;
+    padding: 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid var(--line-soft);
+    background: linear-gradient(135deg, rgba(232,160,74,0.05), transparent 70%);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.18s ease;
+    position: relative;
+  }
+  .dashboard-item:hover {
+    background: var(--bg-elev);
+    border-color: var(--line);
+  }
+  .dashboard-item.active {
+    background: var(--bg-elev);
+    border-color: var(--amber);
+  }
+  .dashboard-item.active::before {
+    content: '';
+    position: absolute;
+    left: -12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 28px;
+    background: var(--amber);
+    border-radius: 0 2px 2px 0;
+    box-shadow: 0 0 16px var(--amber);
+  }
+  .dashboard-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, var(--amber), var(--amber-deep));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 0 14px rgba(232,160,74,0.25);
+  }
+  .dashboard-icon svg { width: 16px; height: 16px; color: var(--bg-deep); }
+  .dashboard-info { flex: 1; min-width: 0; }
+  .dashboard-name {
+    font-family: var(--serif);
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+  }
+  .dashboard-meta {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-mute);
+    letter-spacing: 0.05em;
+    margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .dashboard-meta strong { color: var(--rose); font-weight: 500; }
+
+  /* ---------- DASHBOARD VIEW ---------- */
+  .canvas-wrap.dashboard-mode { background-image: none; }
+  .canvas.dashboard-mode { padding: 0; }
+
+  .dashboard {
+    padding: 32px 36px 80px;
+    max-width: 1480px;
+    margin: 0 auto;
+  }
+
+  .dash-summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .dash-stat {
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .dash-stat::after {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 2px;
+    background: var(--ink-mute);
+    opacity: 0.3;
+  }
+  .dash-stat.overdue::after { background: var(--rose); opacity: 0.7; }
+  .dash-stat.soon::after { background: var(--citrus); opacity: 0.7; }
+  .dash-stat.upcoming::after { background: var(--sage); opacity: 0.7; }
+  .dash-stat.total::after { background: var(--amber); opacity: 0.7; }
+  .dash-stat-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-bottom: 6px;
+  }
+  .dash-stat-value {
+    font-family: var(--serif);
+    font-size: 38px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .dash-stat-sub {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 300;
+    font-size: 12px;
+    color: var(--ink-mute);
+    margin-top: 8px;
+  }
+  .dash-stat.overdue .dash-stat-value { color: var(--rose); }
+  .dash-stat.soon .dash-stat-value { color: var(--citrus); }
+  .dash-stat.upcoming .dash-stat-value { color: var(--sage); }
+  .dash-stat.total .dash-stat-value { color: var(--amber); }
+
+  .dash-filters {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    padding: 14px;
+    background: var(--bg-panel);
+    border: 1px solid var(--line-soft);
+    border-radius: 4px;
+  }
+  .dash-chip {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 12px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: transparent;
+    cursor: pointer;
+    font-family: var(--sans);
+    font-size: 12px;
+    color: var(--ink-dim);
+    transition: all 0.15s;
+  }
+  .dash-chip:hover { border-color: var(--ink-mute); color: var(--ink); }
+  .dash-chip.active {
+    background: var(--bg-elev);
+    border-color: var(--ink-mute);
+    color: var(--ink);
+  }
+  .dash-chip-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+  .dash-search {
+    flex: 1;
+    min-width: 240px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-deep);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 8px 12px;
+  }
+  .dash-search:focus-within { border-color: var(--amber); box-shadow: 0 0 0 3px var(--amber-glow); }
+  .dash-search svg { width: 14px; height: 14px; color: var(--ink-mute); }
+  .dash-search input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 13px;
+  }
+  .dash-search input::placeholder { color: var(--ink-mute); font-style: italic; }
+  .dash-clear-search {
+    background: transparent;
+    border: none;
+    color: var(--ink-mute);
+    cursor: pointer;
+    padding: 2px;
+    display: flex;
+  }
+  .dash-clear-search:hover { color: var(--rose); }
+
+  .dash-section { margin-bottom: 28px; }
+  .dash-section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .dash-section-title {
+    font-family: var(--serif);
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  .dash-section.overdue .dash-section-title { color: var(--rose); }
+  .dash-section.soon .dash-section-title { color: var(--citrus); }
+  .dash-section.upcoming .dash-section-title { color: var(--sage); }
+  .dash-section-count {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-mute);
+    letter-spacing: 0.05em;
+  }
+
+  .dash-table {
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .dash-row {
+    display: grid;
+    grid-template-columns: 150px 200px 1.4fr 1.2fr 130px 70px;
+    gap: 0;
+    align-items: stretch;
+    border-bottom: 1px solid var(--line-soft);
+    padding: 10px 16px;
+    transition: background 0.12s;
+    position: relative;
+  }
+  .dash-row:last-child { border-bottom: none; }
+  .dash-row:hover { background: rgba(255,255,255,0.025); }
+  .dash-row.is-overdue { box-shadow: inset 3px 0 0 var(--rose); }
+  .dash-row.is-soon { box-shadow: inset 3px 0 0 var(--citrus); }
+
+  .dash-row > div {
+    padding: 4px 8px;
+    font-size: 12px;
+    line-height: 1.4;
+    display: flex;
+    align-items: center;
+  }
+
+  .dash-biz {
+    gap: 8px !important;
+  }
+  .dash-biz-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 0 8px currentColor;
+  }
+  .dash-biz-name {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .dash-person {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 1px;
+    padding: 4px 8px !important;
+  }
+  .dash-person-name {
+    font-family: var(--serif);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+  .dash-person-role {
+    font-family: var(--sans);
+    font-size: 10.5px;
+    color: var(--ink-mute);
+    letter-spacing: 0.01em;
+  }
+
+  .dash-actions {
+    gap: 4px !important;
+    justify-content: flex-end !important;
+  }
+  .dash-action-btn {
+    background: transparent;
+    border: none;
+    color: var(--ink-mute);
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.5;
+    transition: all 0.15s;
+  }
+  .dash-row:hover .dash-action-btn { opacity: 1; }
+  .dash-action-btn:hover { background: var(--line); color: var(--ink); opacity: 1; }
+  .dash-action-btn.danger:hover { color: var(--rose); }
+  .dash-action-btn.goto:hover { color: var(--amber); }
+  .dash-action-btn svg { width: 13px; height: 13px; }
+
+  .dash-empty {
+    padding: 80px 20px;
+    text-align: center;
+  }
+  .dash-empty-svg {
+    width: 90px;
+    height: 90px;
+    margin: 0 auto 20px;
+    opacity: 0.3;
+  }
+  .dash-empty-title {
+    font-family: var(--serif);
+    font-size: 24px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    margin-bottom: 6px;
+  }
+  .dash-empty-title em { font-style: italic; color: var(--amber); }
+  .dash-empty-text {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 300;
+    color: var(--ink-mute);
+    font-size: 14px;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  /* Highlight when jumping from dashboard */
+  @keyframes nodeHighlight {
+    0%   { box-shadow: 0 0 0 0 var(--amber), var(--shadow-md); }
+    40%  { box-shadow: 0 0 0 8px var(--amber-glow), var(--shadow-md); }
+    100% { box-shadow: 0 0 0 0 transparent, var(--shadow-md); }
+  }
+  .node-card.highlight-jump {
+    animation: nodeHighlight 1.6s ease-out;
+    border-color: var(--amber) !important;
+  }
+
+  @media (max-width: 1100px) {
+    .dash-row {
+      grid-template-columns: 110px 160px 1.3fr 1fr 120px 60px;
+    }
+    .dash-summary { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* ---------- AVATAR ---------- */
+  .avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background-color: var(--bg-elev-2);
+    background-size: cover;
+    background-position: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-family: var(--serif);
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--biz-color, var(--ink-dim));
+    border: 2px solid var(--biz-color, var(--line));
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
+  .avatar.sm {
+    width: 30px;
+    height: 30px;
+    font-size: 11px;
+    border-width: 1.5px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+  }
+  .avatar.lg {
+    width: 84px;
+    height: 84px;
+    font-size: 28px;
+    border-width: 2.5px;
+  }
+
+  /* Card layout with avatar */
+  .card-header-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 2px;
+  }
+  .card-header-row .avatar {
+    margin-top: 2px;
+  }
+  .card-text {
+    flex: 1;
+    min-width: 0;
+  }
+  .card-text .card-role { margin-bottom: 3px; }
+
+  /* Dashboard person cell with avatar */
+  .dash-person-wrap {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px;
+    padding: 4px 8px !important;
+  }
+  .dash-person-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+
+  /* Avatar uploader in modal */
+  .avatar-uploader {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 4px 0;
+  }
+  .avatar-uploader-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+  }
+  .avatar-btn {
+    background: var(--bg-elev);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 8px 14px;
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 3px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    transition: all 0.15s;
+    text-align: left;
+    justify-content: flex-start;
+  }
+  .avatar-btn:hover { border-color: var(--ink-mute); background: var(--bg-elev-2); }
+  .avatar-btn.danger { color: var(--rose); }
+  .avatar-btn.danger:hover {
+    background: rgba(217,122,108,0.08);
+    border-color: rgba(217,122,108,0.4);
+  }
+  .avatar-btn svg { width: 13px; height: 13px; flex-shrink: 0; }
+  .avatar-hidden-input { display: none; }
+  .avatar-uploader .avatar { border-color: var(--amber); color: var(--amber); }
+
+  /* ---------- AUTH OVERLAY ---------- */
+  .auth-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    background: var(--bg-deep);
+    background-image:
+      radial-gradient(ellipse 70% 50% at 30% 20%, rgba(232,160,74,0.10), transparent 70%),
+      radial-gradient(ellipse 60% 40% at 70% 90%, rgba(111,154,184,0.06), transparent 70%);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .auth-overlay.open { display: flex; }
+  .auth-card {
+    width: 100%;
+    max-width: 420px;
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 36px 36px 30px;
+    box-shadow: var(--shadow-lg);
+  }
+  .auth-brand-mark {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--amber);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .auth-brand-mark::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--amber);
+    border-radius: 50%;
+    box-shadow: 0 0 12px var(--amber);
+  }
+  .auth-title {
+    font-family: var(--serif);
+    font-size: 32px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 6px;
+  }
+  .auth-title em { font-style: italic; color: var(--amber); font-weight: 300; }
+  .auth-sub {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 300;
+    color: var(--ink-mute);
+    font-size: 14px;
+    margin-bottom: 26px;
+  }
+  .auth-field-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-mute);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: block;
+  }
+  .auth-input {
+    width: 100%;
+    background: var(--bg-deep);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 12px 14px;
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 14px;
+    transition: border-color 0.15s;
+    margin-bottom: 14px;
+  }
+  .auth-input:focus {
+    outline: none;
+    border-color: var(--amber);
+    box-shadow: 0 0 0 3px var(--amber-glow);
+  }
+  .auth-btn {
+    width: 100%;
+    background: var(--amber);
+    border: 1px solid var(--amber);
+    color: var(--bg-deep);
+    padding: 12px 16px;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .auth-btn:hover { background: var(--amber-deep); border-color: var(--amber-deep); }
+  .auth-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .auth-msg {
+    margin-top: 16px;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 13px;
+    line-height: 1.5;
+    min-height: 20px;
+  }
+  .auth-msg.success { color: var(--sage); }
+  .auth-msg.error { color: var(--rose); font-style: normal; font-family: var(--sans); }
+  .auth-foot {
+    margin-top: 22px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line-soft);
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-mute);
+    letter-spacing: 0.05em;
+    text-align: center;
+  }
+  .auth-foot strong { color: var(--ink-dim); font-weight: 500; }
+
+  /* ---------- SIGN OUT button in sidebar ---------- */
+  .signout-btn {
+    background: transparent;
+    border: none;
+    color: var(--ink-mute);
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 6px;
+    border-radius: 2px;
+    transition: color 0.15s;
+  }
+  .signout-btn:hover { color: var(--rose); }
+  .user-email {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-mute);
+    letter-spacing: 0.02em;
+    max-width: 130px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+
+<!-- ========= AUTH OVERLAY ========= -->
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-card">
+    <div class="auth-brand-mark">Atlas Org Studio</div>
+    <h1 class="auth-title">Accedi al <em>tuo spazio</em></h1>
+    <p class="auth-sub">Inserisci la tua email. Ti invieremo un link sicuro per accedere — niente password.</p>
+    <form id="authForm" novalidate>
+      <label class="auth-field-label" for="authEmailInput">Email</label>
+      <input
+        type="email"
+        class="auth-input"
+        id="authEmailInput"
+        placeholder="tu@esempio.com"
+        autocomplete="email"
+        required
+      >
+      <button type="submit" class="auth-btn" id="authSubmitBtn">
+        <span id="authBtnLabel">Invia link di accesso</span>
+      </button>
+    </form>
+    <div class="auth-msg" id="authMsg"></div>
+    <div class="auth-foot">
+      Prototipo per <strong>test di utilizzo</strong> · dati su Supabase
+    </div>
+  </div>
+</div>
+
+<div class="app">
+  <!-- ========= SIDEBAR ========= -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">Atlas Org Studio</div>
+      <h1 class="brand-title">Multi<em>·Business</em></h1>
+      <div class="brand-sub">organigrammi viventi</div>
+    </div>
+
+    <div class="dashboard-item" id="dashboardItem"></div>
+
+    <div class="business-section-header">
+      <span class="section-label">Business Units</span>
+      <span class="section-count" id="bizCount">0</span>
+    </div>
+
+    <div class="business-list" id="businessList"></div>
+
+    <button class="add-biz-btn" id="addBizBtn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nuova Business Unit
+    </button>
+
+    <div class="sidebar-footer">
+      <div class="save-status">
+        <div class="save-dot" id="saveDot"></div>
+        <span id="saveText">salvato</span>
+      </div>
+      <button class="signout-btn" id="signoutBtn" title="Esci">Esci</button>
+    </div>
+    <div class="sidebar-footer" style="border-top:1px solid var(--line-soft);">
+      <span class="user-email" id="userEmail" title=""></span>
+      <span id="footerVersion">v1.3</span>
+    </div>
+  </aside>
+
+  <!-- ========= MAIN ========= -->
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="topbarTitle">
+        <h2 class="current-biz-name">—</h2>
+      </div>
+      <div class="topbar-actions" id="topbarActions"></div>
+    </div>
+
+    <div class="canvas-wrap">
+      <div class="canvas" id="canvas"></div>
+    </div>
+  </main>
+</div>
+
+<!-- ========= MODAL: BUSINESS ========= -->
+<div class="modal-overlay" id="bizModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-eyebrow" id="bizModalEyebrow">Nuova Business Unit</div>
+      <h3 class="modal-title">Definisci <em>l'unità</em></h3>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label class="field-label">Nome</label>
+        <input type="text" class="field-input" id="bizNameInput" placeholder="es. Acme Holding">
+      </div>
+      <div class="field">
+        <label class="field-label">Settore / Tag</label>
+        <input type="text" class="field-input" id="bizTagInput" placeholder="es. Tech · Manifatturiero · Retail">
+      </div>
+      <div class="field">
+        <label class="field-label">Colore identificativo</label>
+        <div class="color-picker" id="bizColorPicker"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" id="bizModalCancel">Annulla</button>
+      <button class="btn primary" id="bizModalSave">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========= MODAL: NODE ========= -->
+<div class="modal-overlay" id="nodeModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-eyebrow" id="nodeModalEyebrow">Nuova Persona</div>
+      <h3 class="modal-title">Aggiungi <em>al team</em></h3>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label class="field-label">Foto (opzionale)</label>
+        <div class="avatar-uploader">
+          <div class="avatar lg" id="nodeAvatarPreview"></div>
+          <div class="avatar-uploader-actions">
+            <button type="button" class="avatar-btn" id="nodeAvatarUploadBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <span id="nodeAvatarUploadLabel">Carica foto</span>
+            </button>
+            <button type="button" class="avatar-btn danger" id="nodeAvatarRemoveBtn" style="display:none">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              Rimuovi
+            </button>
+          </div>
+          <input type="file" accept="image/*" class="avatar-hidden-input" id="nodeAvatarInput">
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">Nome e cognome</label>
+        <input type="text" class="field-input" id="nodeNameInput" placeholder="es. Maria Rossi">
+      </div>
+      <div class="field">
+        <label class="field-label">Ruolo / Posizione</label>
+        <input type="text" class="field-input" id="nodeRoleInput" placeholder="es. Chief Operating Officer">
+      </div>
+      <div class="field">
+        <label class="field-label">Dipartimento (opzionale)</label>
+        <input type="text" class="field-input" id="nodeDeptInput" placeholder="es. Operations">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" id="nodeModalCancel">Annulla</button>
+      <button class="btn primary" id="nodeModalSave">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========= TOAST ========= -->
+<div class="toast" id="toast">
+  <span class="toast-dot"></span>
+  <span id="toastText">Salvato</span>
+</div>
+
+<script>
+/* ======================================================================
+   ATLAS ORG STUDIO — MULTI-BUSINESS ORG CHART · v1.3 (Supabase prototype)
+   ====================================================================== */
+
+// ---------- Supabase config ----------
+// Both values are safe to expose in the browser — the anon key is designed
+// for client-side use and protected by Row Level Security on the database.
+const SUPABASE_URL      = 'https://ibhlsgzapvhnmwslgcuz.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_KksWmKQVmdkRsU1P9ex1fQ_jNkNe9c-';   // publishable key — safe for client, RLS-protected
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true
+  }
+});
+
+let currentUser = null;
+
+const PALETTE = [
+  { name: 'amber',  color: '#e8a04a', glow: 'rgba(232,160,74,0.25)' },
+  { name: 'rose',   color: '#d97a6c', glow: 'rgba(217,122,108,0.25)' },
+  { name: 'sage',   color: '#8aa17a', glow: 'rgba(138,161,122,0.25)' },
+  { name: 'azure',  color: '#6f9ab8', glow: 'rgba(111,154,184,0.25)' },
+  { name: 'plum',   color: '#a87aa8', glow: 'rgba(168,122,168,0.25)' },
+  { name: 'citrus', color: '#c9b54a', glow: 'rgba(201,181,74,0.25)' },
+  { name: 'teal',   color: '#5fa3a3', glow: 'rgba(95,163,163,0.25)' },
+];
+
+const STORAGE_KEY = 'atlas_orgchart_state_v1';
+
+/* ----------- STATE ----------- */
+let state = {
+  businesses: [],
+  activeBizId: null,
+  activeView: 'business', // 'business' | 'dashboard'
+};
+
+let editingBizId = null;
+let editingNodeContext = null; // { bizId, parentId, nodeId? }
+let tempNodePhoto = null;      // pending photo dataURL while node modal is open
+
+// Dashboard filters (ephemeral, not persisted)
+let dashFilters = {
+  bizId: 'all',  // 'all' or a specific business id
+  search: ''
+};
+
+/* ----------- ID GEN ----------- */
+const uid = () => Math.random().toString(36).slice(2, 9);
+
+/* ----------- PERSISTENCE — Supabase blob storage -----------
+   Prototype-grade: the entire client state is persisted as a single JSONB
+   row per user (`app_state.data`). Production will replace this with a
+   relational schema (businesses / persons / activities tables).
+   Debounced 400ms to coalesce rapid edits into a single network call.
+-------------------------------------------------------------- */
+let saveTimer = null;
+let savingInFlight = false;
+
+function persist() {
+  setSaveStatus('saving');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    if (!currentUser) return;
+    if (savingInFlight) {
+      // Schedule a retry shortly so the latest state still gets flushed
+      saveTimer = setTimeout(persist, 200);
+      return;
+    }
+    savingInFlight = true;
+    try {
+      const { error } = await sb
+        .from('app_state')
+        .upsert(
+          { user_id: currentUser.id, data: state },
+          { onConflict: 'user_id' }
+        );
+      if (error) throw error;
+      setSaveStatus('saved');
+    } catch (e) {
+      console.error('Save failed', e);
+      setSaveStatus('error');
+    } finally {
+      savingInFlight = false;
+    }
+  }, 400);
+}
+
+async function loadState() {
+  if (!currentUser) { seedExample(); return; }
+  try {
+    const { data, error } = await sb
+      .from('app_state')
+      .select('data')
+      .eq('user_id', currentUser.id)
+      .maybeSingle();
+    if (error) throw error;
+    if (data && data.data && Array.isArray(data.data.businesses)) {
+      state = data.data;
+      migrateState();
+      return;
+    }
+  } catch (e) {
+    console.warn('Load failed, falling back to seed', e);
+  }
+  // First-time user — give them the example data and persist it to cloud
+  seedExample();
+  // Save the seed asynchronously so the row exists on first visit
+  setTimeout(persist, 100);
+}
+
+function migrateState() {
+  // Migrate from old cosa/come/quando arrays to new activities array
+  const migrateNode = (node) => {
+    if (!node) return;
+    if (!Array.isArray(node.activities)) {
+      const activities = [];
+      const cosa = Array.isArray(node.cosa) ? node.cosa : [];
+      const come = Array.isArray(node.come) ? node.come : [];
+      const quando = Array.isArray(node.quando) ? node.quando : [];
+      const maxLen = Math.max(cosa.length, come.length, quando.length);
+      for (let i = 0; i < maxLen; i++) {
+        activities.push({
+          id: uid(),
+          cosa: cosa[i] || '',
+          come: come[i] || '',
+          date: (quando[i] && quando[i].date) || '',
+          recur: 'none'
+        });
+      }
+      node.activities = activities;
+      delete node.cosa;
+      delete node.come;
+      delete node.quando;
+    }
+    if (Array.isArray(node.children)) node.children.forEach(migrateNode);
+  };
+  state.businesses.forEach(biz => migrateNode(biz.tree));
+
+  // v1.1: ensure activeView exists
+  if (!state.activeView) state.activeView = 'business';
+}
+
+function setSaveStatus(status) {
+  const dot = document.getElementById('saveDot');
+  const text = document.getElementById('saveText');
+  if (status === 'saving') {
+    dot.classList.add('saving');
+    text.textContent = 'salvataggio...';
+  } else if (status === 'saved') {
+    dot.classList.remove('saving');
+    text.textContent = 'salvato';
+  } else {
+    text.textContent = 'errore';
+  }
+}
+
+/* ----------- SEED ----------- */
+function seedExample() {
+  const b1Id = uid();
+  const b2Id = uid();
+  state.businesses = [
+    {
+      id: b1Id,
+      name: 'Acme Holding',
+      tag: 'Holding · Strategia',
+      colorIdx: 0,
+      tree: {
+        id: uid(),
+        name: 'Elena Conti',
+        role: 'CEO & Founder',
+        dept: 'Direzione',
+        activities: [
+          { id: uid(), cosa: 'Definire la strategia aziendale', come: 'Workshop annuale + analisi di mercato', date: '2026-09-30', recur: 'yearly' },
+          { id: uid(), cosa: 'Approvare budget annuale', come: 'Riunione CdA con CFO', date: '2026-12-15', recur: 'yearly' },
+          { id: uid(), cosa: 'Board meeting', come: 'Presentazione KPI trimestrali', date: '2026-06-15', recur: 'quarterly' },
+        ],
+        children: [
+          {
+            id: uid(),
+            name: 'Marco Bianchi',
+            role: 'COO',
+            dept: 'Operations',
+            activities: [
+              { id: uid(), cosa: 'Stand-up operativo', come: 'Call team operations 30min', date: '2026-05-11', recur: 'weekly' },
+              { id: uid(), cosa: 'Audit operativo', come: 'Visita stabilimenti + report', date: '2026-05-20', recur: 'none' },
+            ],
+            children: [
+              { id: uid(), name: 'Sara Romano', role: 'Head of Operations', dept: 'Operations', activities: [], children: [] },
+              { id: uid(), name: 'Luca Marchetti', role: 'Logistics Manager', dept: 'Supply Chain', activities: [], children: [] },
+            ]
+          },
+          {
+            id: uid(),
+            name: 'Giulia Esposito',
+            role: 'CFO',
+            dept: 'Finance',
+            activities: [
+              { id: uid(), cosa: 'Reporting finanziario', come: 'SAP Finance + slide CdA', date: '2026-05-31', recur: 'monthly' },
+              { id: uid(), cosa: 'Chiusura bilancio', come: 'Coordinamento revisore + audit', date: '2026-12-31', recur: 'yearly' },
+            ],
+            children: [
+              { id: uid(), name: 'Davide Greco', role: 'Controller', dept: 'Finance', activities: [], children: [] }
+            ]
+          },
+          {
+            id: uid(),
+            name: 'Roberto Ferrari',
+            role: 'CTO',
+            dept: 'Technology',
+            activities: [],
+            children: []
+          },
+        ]
+      }
+    },
+    {
+      id: b2Id,
+      name: 'Vega Studio',
+      tag: 'Design · Creative',
+      colorIdx: 3,
+      tree: {
+        id: uid(),
+        name: 'Chiara Russo',
+        role: 'Creative Director',
+        dept: 'Studio',
+        activities: [
+          { id: uid(), cosa: 'Critique session', come: 'Review Figma con il team', date: '2026-05-13', recur: 'weekly' },
+        ],
+        children: [
+          { id: uid(), name: 'Tommaso Lombardi', role: 'Design Lead', dept: 'Visual', activities: [], children: [] },
+          { id: uid(), name: 'Alice Moretti', role: 'Strategy Lead', dept: 'Strategy', activities: [], children: [] },
+        ]
+      }
+    }
+  ];
+  state.activeBizId = b1Id;
+}
+
+/* ----------- TREE UTILITIES ----------- */
+function findNode(node, id) {
+  if (!node) return null;
+  if (node.id === id) return node;
+  for (const c of (node.children || [])) {
+    const found = findNode(c, id);
+    if (found) return found;
+  }
+  return null;
+}
+
+function findParent(node, id, parent = null) {
+  if (!node) return null;
+  if (node.id === id) return parent;
+  for (const c of (node.children || [])) {
+    const found = findParent(c, id, node);
+    if (found !== null) return found;
+  }
+  return null;
+}
+
+function isDescendant(node, ancestorId, targetId) {
+  // returns true if targetId is descendant of (or equal to) ancestorId in tree rooted at node
+  const ancestor = findNode(node, ancestorId);
+  if (!ancestor) return false;
+  return findNode(ancestor, targetId) !== null;
+}
+
+function removeNode(parent, id) {
+  if (!parent || !parent.children) return null;
+  const idx = parent.children.findIndex(c => c.id === id);
+  if (idx >= 0) {
+    return parent.children.splice(idx, 1)[0];
+  }
+  for (const c of parent.children) {
+    const removed = removeNode(c, id);
+    if (removed) return removed;
+  }
+  return null;
+}
+
+/* ----------- RENDER: SIDEBAR ----------- */
+function renderSidebar() {
+  // ---- Dashboard pinned item ----
+  const dash = document.getElementById('dashboardItem');
+  if (dash) {
+    const all = gatherAllActivities();
+    const overdueCount = all.filter(x => x.status === 'overdue').length;
+    const soonCount = all.filter(x => x.status === 'soon').length;
+    dash.classList.toggle('active', state.activeView === 'dashboard');
+
+    const metaParts = [];
+    metaParts.push(`${all.length} totali`);
+    if (overdueCount > 0) metaParts.push(`<strong>${overdueCount} scadute</strong>`);
+    if (soonCount > 0) metaParts.push(`${soonCount} in arrivo`);
+
+    dash.innerHTML = `
+      <div class="dashboard-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+          <rect x="3" y="3" width="7" height="9" rx="1"/>
+          <rect x="14" y="3" width="7" height="5" rx="1"/>
+          <rect x="14" y="12" width="7" height="9" rx="1"/>
+          <rect x="3" y="16" width="7" height="5" rx="1"/>
+        </svg>
+      </div>
+      <div class="dashboard-info">
+        <div class="dashboard-name">Cruscotto Attività</div>
+        <div class="dashboard-meta">${metaParts.join(' · ')}</div>
+      </div>
+    `;
+    dash.onclick = () => {
+      if (state.activeView === 'dashboard') return;
+      state.activeView = 'dashboard';
+      persist();
+      render();
+    };
+  }
+
+  // ---- Business list ----
+  const list = document.getElementById('businessList');
+  list.innerHTML = '';
+  document.getElementById('bizCount').textContent =
+    String(state.businesses.length).padStart(2, '0');
+
+  state.businesses.forEach(biz => {
+    const palette = PALETTE[biz.colorIdx % PALETTE.length];
+    const item = document.createElement('div');
+    const isActive = biz.id === state.activeBizId && state.activeView === 'business';
+    item.className = 'biz-item' + (isActive ? ' active' : '');
+    item.style.setProperty('--biz-color', palette.color);
+    item.style.setProperty('--biz-color-glow', palette.glow);
+    item.innerHTML = `
+      <div class="biz-dot"></div>
+      <div class="biz-info">
+        <div class="biz-name">${escapeHtml(biz.name)}</div>
+        <div class="biz-meta">${escapeHtml(biz.tag || '—')}</div>
+      </div>
+      <div class="biz-actions">
+        <button class="biz-icon-btn" data-act="edit" title="Modifica">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="biz-icon-btn danger" data-act="delete" title="Elimina">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
+        </button>
+      </div>
+    `;
+    item.addEventListener('click', (e) => {
+      const actBtn = e.target.closest('[data-act]');
+      if (actBtn) {
+        e.stopPropagation();
+        if (actBtn.dataset.act === 'edit') openBizModal(biz.id);
+        else if (actBtn.dataset.act === 'delete') deleteBusiness(biz.id);
+        return;
+      }
+      state.activeBizId = biz.id;
+      state.activeView = 'business';
+      persist();
+      render();
+    });
+    list.appendChild(item);
+  });
+}
+
+/* ----------- RENDER: TOPBAR ----------- */
+function renderTopbar() {
+  const titleEl = document.getElementById('topbarTitle');
+  const actionsEl = document.getElementById('topbarActions');
+
+  // Dashboard mode
+  if (state.activeView === 'dashboard') {
+    titleEl.innerHTML = `
+      <h2 class="current-biz-name">Cruscotto</h2>
+      <span class="current-biz-tag" style="border-color: rgba(232,160,74,0.45); color: var(--amber)">Attività · Multi-business</span>
+    `;
+    actionsEl.innerHTML = `
+      <button class="btn" id="exportCsvBtn" title="Esporta tutte le attività in CSV">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Esporta CSV
+      </button>
+    `;
+    document.getElementById('exportCsvBtn').addEventListener('click', exportActivitiesCsv);
+    return;
+  }
+
+  const biz = state.businesses.find(b => b.id === state.activeBizId);
+
+  if (!biz) {
+    titleEl.innerHTML = `<h2 class="current-biz-name">—</h2>`;
+    actionsEl.innerHTML = '';
+    return;
+  }
+
+  const palette = PALETTE[biz.colorIdx % PALETTE.length];
+  titleEl.innerHTML = `
+    <h2 class="current-biz-name">${escapeHtml(biz.name)}</h2>
+    <span class="current-biz-tag" style="border-color: ${palette.color}40; color: ${palette.color}">${escapeHtml(biz.tag || 'Business Unit')}</span>
+  `;
+
+  actionsEl.innerHTML = `
+    ${!biz.tree ? `
+      <button class="btn primary" id="addRootBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Aggiungi vertice
+      </button>
+    ` : ''}
+    <button class="btn" id="exportJsonBtn" title="Esporta JSON">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Esporta
+    </button>
+  `;
+
+  document.getElementById('exportJsonBtn').addEventListener('click', exportJson);
+  const addRoot = document.getElementById('addRootBtn');
+  if (addRoot) addRoot.addEventListener('click', () => openNodeModal({ bizId: biz.id, parentId: null, isRoot: true }));
+}
+
+/* ----------- RENDER: CANVAS ----------- */
+function renderCanvas() {
+  const canvas = document.getElementById('canvas');
+  canvas.innerHTML = '';
+  const biz = state.businesses.find(b => b.id === state.activeBizId);
+
+  if (!biz) {
+    canvas.innerHTML = `
+      <div class="empty-state">
+        <svg class="empty-svg" viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="45" y="10" width="30" height="20" rx="2"/>
+          <rect x="15" y="60" width="30" height="20" rx="2"/>
+          <rect x="75" y="60" width="30" height="20" rx="2"/>
+          <line x1="60" y1="30" x2="60" y2="45"/>
+          <line x1="30" y1="45" x2="90" y2="45"/>
+          <line x1="30" y1="45" x2="30" y2="60"/>
+          <line x1="90" y1="45" x2="90" y2="60"/>
+          <rect x="45" y="95" width="30" height="20" rx="2" stroke-dasharray="3 3"/>
+        </svg>
+        <h2 class="empty-title">Nessuna <em>business unit</em> selezionata</h2>
+        <p class="empty-text">Crea una business unit dalla barra laterale per iniziare a costruire il tuo organigramma.</p>
+        <button class="btn primary" onclick="openBizModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nuova Business Unit
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  const palette = PALETTE[biz.colorIdx % PALETTE.length];
+  canvas.style.setProperty('--biz-color', palette.color);
+  canvas.style.setProperty('--biz-color-glow', palette.glow);
+
+  if (!biz.tree) {
+    canvas.innerHTML = `
+      <div class="empty-state">
+        <svg class="empty-svg" viewBox="0 0 120 120" fill="none" stroke="${palette.color}" stroke-width="1.5">
+          <rect x="45" y="50" width="30" height="20" rx="2"/>
+          <circle cx="60" cy="20" r="8" stroke-dasharray="3 3"/>
+          <line x1="60" y1="28" x2="60" y2="50"/>
+        </svg>
+        <h2 class="empty-title">Costruisci <em>il vertice</em></h2>
+        <p class="empty-text">Inizia aggiungendo la persona al vertice della struttura per <strong>${escapeHtml(biz.name)}</strong>.</p>
+        <button class="btn primary" onclick="openNodeModal({ bizId: '${biz.id}', parentId: null, isRoot: true })">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Aggiungi vertice
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  const tree = document.createElement('div');
+  tree.className = 'tree';
+  tree.appendChild(renderTreeNode(biz.tree, biz, true));
+  canvas.appendChild(tree);
+}
+
+function renderExpansion(node, biz) {
+  // Backward compat: ensure activities array exists
+  if (!Array.isArray(node.activities)) node.activities = [];
+
+  const activities = node.activities;
+
+  const rowsHtml = activities.length === 0
+    ? `<div class="activity-empty">Nessuna attività. Aggiungi la prima qui sotto.</div>`
+    : `<div class="activity-rows">${activities.map(act => renderActivityRow(act, biz)).join('')}</div>`;
+
+  return `
+    <div class="card-expansion" data-node-id="${node.id}">
+      <div class="activity-table">
+        <div class="activity-header">
+          <div class="col-cosa">Cosa</div>
+          <div class="col-come">Come</div>
+          <div class="col-quando">Quando</div>
+          <div></div>
+        </div>
+        ${rowsHtml}
+        <div class="activity-add-row">
+          <button class="activity-add-btn" data-act="add-activity">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Aggiungi attività
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderActivityRow(act, biz) {
+  return `
+    <div class="activity-row" data-activity-id="${act.id}">
+      <div class="activity-cell cell-cosa" data-field="cosa" tabindex="0">${escapeHtml(act.cosa || '')}</div>
+      <div class="activity-cell cell-come" data-field="come" tabindex="0">${escapeHtml(act.come || '')}</div>
+      <div class="cell-quando">${renderQuandoCell(act, biz)}</div>
+      <button class="activity-remove" data-act="remove-activity" title="Elimina attività">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  `;
+}
+
+function renderQuandoCell(act, biz) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  let dateClass = 'empty';
+  let dateLabel = '+ data';
+  if (act.date) {
+    const d = new Date(act.date);
+    d.setHours(0, 0, 0, 0);
+    const diff = Math.round((d - today) / (1000 * 60 * 60 * 24));
+    if (diff < 0) dateClass = 'overdue';
+    else if (diff <= 7) dateClass = 'soon';
+    else dateClass = '';
+    dateLabel = formatDate(act.date);
+  }
+
+  const recur = act.recur || 'none';
+  const recurLabels = {
+    none: 'Una volta',
+    daily: 'Giornal.',
+    weekly: 'Settim.',
+    monthly: 'Mensile',
+    quarterly: 'Trimestr.',
+    yearly: 'Annuale'
+  };
+  const recurClass = recur !== 'none' ? 'active' : '';
+
+  return `
+    <span class="quando-date ${dateClass}" data-field="date">${dateLabel}</span>
+    <button class="quando-recur ${recurClass}" data-field="recur" data-recur="${recur}">${recurLabels[recur]}</button>
+  `;
+}
+
+function formatDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return iso;
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}.${month}.${year}`;
+}
+
+function wireExpansion(card, biz, node) {
+  const exp = card.querySelector('.card-expansion');
+  if (!exp) return;
+
+  // Stop propagation: prevent expansion clicks from triggering drag
+  exp.addEventListener('mousedown', (e) => e.stopPropagation());
+  exp.addEventListener('click', (e) => e.stopPropagation());
+
+  // Add activity button
+  const addBtn = exp.querySelector('[data-act="add-activity"]');
+  if (addBtn) {
+    addBtn.addEventListener('click', () => {
+      addActivity(biz.id, node.id);
+    });
+  }
+
+  // Per-row handlers
+  exp.querySelectorAll('.activity-row').forEach(row => {
+    const activityId = row.dataset.activityId;
+
+    // Remove
+    row.querySelector('[data-act="remove-activity"]').addEventListener('click', () => {
+      removeActivity(biz.id, node.id, activityId);
+    });
+
+    // Inline edit cosa & come
+    row.querySelectorAll('.activity-cell[data-field="cosa"], .activity-cell[data-field="come"]').forEach(cell => {
+      cell.addEventListener('click', () => startInlineEdit(cell, biz.id, node.id, activityId, cell.dataset.field));
+    });
+
+    // Date click → open date input
+    row.querySelector('.quando-date').addEventListener('click', () => {
+      startDateEdit(row, biz.id, node.id, activityId);
+    });
+
+    // Recurrence button → popover
+    row.querySelector('.quando-recur').addEventListener('click', (e) => {
+      openRecurPopover(e.currentTarget, biz.id, node.id, activityId);
+    });
+  });
+}
+
+function startInlineEdit(cell, bizId, nodeId, activityId, field) {
+  if (cell.classList.contains('editing')) return;
+  const biz = state.businesses.find(b => b.id === bizId);
+  const node = findNode(biz.tree, nodeId);
+  const act = node.activities.find(a => a.id === activityId);
+  const current = act[field] || '';
+
+  cell.classList.add('editing');
+  cell.innerHTML = `<input type="text" value="${escapeHtml(current)}" placeholder="${field === 'cosa' ? 'Cosa fare…' : 'Come farlo…'}" />`;
+  const input = cell.querySelector('input');
+  input.focus();
+  input.select();
+
+  const finish = (commit) => {
+    if (commit) {
+      act[field] = input.value.trim();
+      persist();
+    }
+    refreshAfterActivityEdit(bizId, nodeId);
+  };
+
+  input.addEventListener('blur', () => finish(true));
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); finish(true); }
+    else if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+  });
+}
+
+function startDateEdit(row, bizId, nodeId, activityId) {
+  const biz = state.businesses.find(b => b.id === bizId);
+  const node = findNode(biz.tree, nodeId);
+  const act = node.activities.find(a => a.id === activityId);
+
+  const cell = row.querySelector('.cell-quando');
+  const dateSpan = cell.querySelector('.quando-date');
+  if (cell.querySelector('.quando-date-input')) return;
+
+  const input = document.createElement('input');
+  input.type = 'date';
+  input.className = 'quando-date-input';
+  input.value = act.date || '';
+
+  dateSpan.replaceWith(input);
+  input.focus();
+  if (typeof input.showPicker === 'function') {
+    try { input.showPicker(); } catch(e) {}
+  }
+
+  const finish = (commit) => {
+    if (commit) {
+      act.date = input.value;
+      persist();
+    }
+    refreshAfterActivityEdit(bizId, nodeId);
+  };
+
+  input.addEventListener('change', () => finish(true));
+  input.addEventListener('blur', () => finish(true));
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); finish(true); }
+    else if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+  });
+}
+
+function openRecurPopover(buttonEl, bizId, nodeId, activityId) {
+  // Close any other popover
+  document.querySelectorAll('.recur-popover').forEach(p => p.remove());
+
+  const biz = state.businesses.find(b => b.id === bizId);
+  const node = findNode(biz.tree, nodeId);
+  const act = node.activities.find(a => a.id === activityId);
+  const current = act.recur || 'none';
+
+  const options = [
+    { val: 'none',      label: 'Una volta' },
+    { val: 'daily',     label: 'Giornaliera' },
+    { val: 'weekly',    label: 'Settimanale' },
+    { val: 'monthly',   label: 'Mensile' },
+    { val: 'quarterly', label: 'Trimestrale' },
+    { val: 'yearly',    label: 'Annuale' },
+  ];
+
+  const pop = document.createElement('div');
+  pop.className = 'recur-popover';
+  pop.innerHTML = options.map(o =>
+    `<button data-val="${o.val}" class="${o.val === current ? 'selected' : ''}">${o.label}</button>`
+  ).join('');
+
+  const rect = buttonEl.getBoundingClientRect();
+  pop.style.position = 'fixed';
+  pop.style.top = (rect.bottom + 4) + 'px';
+  pop.style.left = rect.left + 'px';
+
+  document.body.appendChild(pop);
+
+  pop.querySelectorAll('button').forEach(b => {
+    b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      act.recur = b.dataset.val;
+      persist();
+      pop.remove();
+      refreshAfterActivityEdit(bizId, nodeId);
+    });
+  });
+
+  // Close on outside click
+  setTimeout(() => {
+    const onDocClick = (e) => {
+      if (!pop.contains(e.target)) {
+        pop.remove();
+        document.removeEventListener('click', onDocClick);
+      }
+    };
+    document.addEventListener('click', onDocClick);
+  }, 0);
+}
+
+function addActivity(bizId, nodeId) {
+  const biz = state.businesses.find(b => b.id === bizId);
+  const node = findNode(biz.tree, nodeId);
+  if (!Array.isArray(node.activities)) node.activities = [];
+  const newAct = { id: uid(), cosa: '', come: '', date: '', recur: 'none' };
+  node.activities.push(newAct);
+  persist();
+  refreshAfterActivityEdit(bizId, nodeId);
+  // Auto-focus the new "cosa" cell
+  setTimeout(() => {
+    let row = null;
+    if (state.activeView === 'dashboard') {
+      row = document.querySelector(`.dash-row[data-activity-id="${newAct.id}"]`);
+    } else {
+      const card = document.querySelector(`.node-card[data-node-id="${nodeId}"]`);
+      if (card) row = card.querySelector(`.activity-row[data-activity-id="${newAct.id}"]`);
+    }
+    if (!row) return;
+    const cell = row.querySelector('.cell-cosa');
+    if (cell) startInlineEdit(cell, bizId, nodeId, newAct.id, 'cosa');
+  }, 50);
+}
+
+function removeActivity(bizId, nodeId, activityId) {
+  const biz = state.businesses.find(b => b.id === bizId);
+  const node = findNode(biz.tree, nodeId);
+  if (!Array.isArray(node.activities)) return;
+  node.activities = node.activities.filter(a => a.id !== activityId);
+  persist();
+  refreshAfterActivityEdit(bizId, nodeId);
+}
+
+function refreshAfterActivityEdit(bizId, nodeId) {
+  if (state.activeView === 'dashboard') {
+    // Re-render the whole view: sidebar counts may change, dashboard rows update.
+    render();
+  } else {
+    reRenderCardKeepExpanded(bizId, nodeId);
+    // Update sidebar counter (overdue/soon may have shifted)
+    renderSidebar();
+  }
+}
+
+function reRenderCardKeepExpanded(bizId, nodeId) {
+  // Track which nodes are expanded so we can restore after re-render
+  const expandedIds = new Set();
+  document.querySelectorAll('.node-card.expanded').forEach(c => {
+    if (c.dataset.nodeId) expandedIds.add(c.dataset.nodeId);
+  });
+  expandedIds.add(nodeId);
+  render();
+  // Restore expanded state
+  expandedIds.forEach(id => {
+    const card = document.querySelector(`.node-card[data-node-id="${id}"]`);
+    if (card) {
+      card.classList.add('expanded');
+      card.draggable = false;
+    }
+  });
+}
+
+function renderTreeNode(node, biz, isRoot = false) {
+  const palette = PALETTE[biz.colorIdx % PALETTE.length];
+  const wrap = document.createElement('div');
+  wrap.className = 'tree-node';
+
+  // CARD
+  const card = document.createElement('div');
+  card.className = 'node-card' + (isRoot ? ' is-root' : '');
+  card.dataset.nodeId = node.id;
+  card.draggable = !isRoot; // root non draggabile (è il vertice)
+  card.style.setProperty('--biz-color', palette.color);
+
+  card.innerHTML = `
+    <div class="drop-hint">Sposta sotto</div>
+    <div class="card-color-bar"></div>
+    <div class="card-body">
+      <div class="card-header-row">
+        ${renderAvatar(node, palette)}
+        <div class="card-text">
+          <div class="card-role">${escapeHtml(node.dept || node.role || '')}</div>
+          <div class="card-name">${escapeHtml(node.name || '—')}</div>
+          <div class="card-title">${escapeHtml(node.role || '')}</div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="card-id">${isRoot ? '◆ VERTICE' : '#' + node.id.slice(0, 4).toUpperCase()}</div>
+        <div class="card-actions">
+          <button class="card-icon-btn add" data-act="add" title="Aggiungi sotto">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <button class="card-icon-btn" data-act="edit" title="Modifica anagrafica">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          ${!isRoot ? `
+          <button class="card-icon-btn danger" data-act="delete" title="Elimina">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
+          </button>
+          ` : ''}
+          <button class="card-icon-btn toggle-expand" data-act="toggle" title="Procedura: cosa, come, quando">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    ${renderExpansion(node, biz)}
+  `;
+
+  // Card actions
+  card.querySelectorAll('.card-footer [data-act]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const act = btn.dataset.act;
+      if (act === 'add') openNodeModal({ bizId: biz.id, parentId: node.id });
+      else if (act === 'edit') openNodeModal({ bizId: biz.id, nodeId: node.id });
+      else if (act === 'delete') deleteNode(biz.id, node.id);
+      else if (act === 'toggle') {
+        card.classList.toggle('expanded');
+        // Disable drag while expanded to avoid interfering with input editing
+        card.draggable = !isRoot && !card.classList.contains('expanded');
+      }
+    });
+  });
+
+  // Wire the expansion section
+  wireExpansion(card, biz, node);
+
+  // ===== DRAG & DROP =====
+  if (!isRoot) {
+    card.addEventListener('dragstart', (e) => {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', JSON.stringify({ bizId: biz.id, nodeId: node.id }));
+      card.classList.add('dragging');
+      document.body.classList.add('dragging-node');
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      document.body.classList.remove('dragging-node');
+      document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+      document.querySelectorAll('.drop-center').forEach(el => el.classList.remove('drop-center'));
+      hideReorderIndicator();
+    });
+  }
+
+  card.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'move';
+
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const w = rect.width;
+
+    // Three zones:
+    //   < 25%    → reorder before this card
+    //   25%-75%  → reparent (drop under)
+    //   > 75%    → reorder after this card
+    let mode;
+    if (x < w * 0.25) mode = 'before';
+    else if (x > w * 0.75) mode = 'after';
+    else mode = 'center';
+
+    card.classList.add('drag-over');
+    card.classList.toggle('drop-center', mode === 'center');
+    card.dataset.dropMode = mode;
+
+    // Show/move the reorder indicator
+    if (mode === 'before' || mode === 'after') {
+      showReorderIndicator(card, mode);
+    } else {
+      hideReorderIndicator();
+    }
+  });
+  card.addEventListener('dragleave', (e) => {
+    if (!card.contains(e.relatedTarget)) {
+      card.classList.remove('drag-over');
+      card.classList.remove('drop-center');
+      delete card.dataset.dropMode;
+      hideReorderIndicator();
+    }
+  });
+  card.addEventListener('drop', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const mode = card.dataset.dropMode || 'center';
+    card.classList.remove('drag-over');
+    card.classList.remove('drop-center');
+    delete card.dataset.dropMode;
+    hideReorderIndicator();
+
+    let data;
+    try { data = JSON.parse(e.dataTransfer.getData('text/plain') || '{}'); } catch { return; }
+    if (!data.nodeId || data.bizId !== biz.id) return;
+    if (data.nodeId === node.id) return;
+
+    if (mode === 'center') {
+      // Drop under: this card becomes the new parent
+      moveNode(biz.id, data.nodeId, node.id);
+    } else {
+      // Reorder: insert before/after this card among its siblings
+      // The "parent" for reorder is the parent of THIS card (the target sibling)
+      if (isRoot) return; // can't reorder root
+      const targetParent = findParent(biz.tree, node.id);
+      if (!targetParent) return;
+      const targetIdx = targetParent.children.findIndex(c => c.id === node.id);
+      if (targetIdx < 0) return;
+      const insertIdx = mode === 'before' ? targetIdx : targetIdx + 1;
+      reorderNode(biz.id, data.nodeId, targetParent.id, insertIdx);
+    }
+  });
+
+  wrap.appendChild(card);
+
+  // CHILDREN
+  if (node.children && node.children.length > 0) {
+    const childrenWrap = document.createElement('div');
+    childrenWrap.className = 'tree-children-wrap' + (node.children.length === 1 ? ' single-child' : '');
+
+    node.children.forEach((child, childIdx) => {
+      const childWrap = document.createElement('div');
+      childWrap.className = 'tree-child';
+      childWrap.dataset.childIdx = String(childIdx);
+      childWrap.dataset.parentId = node.id;
+      childWrap.appendChild(renderTreeNode(child, biz, false));
+      childrenWrap.appendChild(childWrap);
+    });
+
+    wrap.appendChild(childrenWrap);
+
+    // Adjust horizontal connector to span only between first and last child
+    requestAnimationFrame(() => {
+      if (node.children.length > 1) {
+        const children = childrenWrap.querySelectorAll(':scope > .tree-child');
+        if (children.length >= 2) {
+          const first = children[0];
+          const last = children[children.length - 1];
+          const wrapRect = childrenWrap.getBoundingClientRect();
+          const firstRect = first.getBoundingClientRect();
+          const lastRect = last.getBoundingClientRect();
+          const leftOffset = firstRect.left + firstRect.width / 2 - wrapRect.left;
+          const rightOffset = wrapRect.right - (lastRect.left + lastRect.width / 2);
+          childrenWrap.style.setProperty('--connector-left', leftOffset + 'px');
+          childrenWrap.style.setProperty('--connector-right', rightOffset + 'px');
+        }
+      }
+    });
+  }
+
+  return wrap;
+}
+
+/* ----------- ACTIONS ----------- */
+function openBizModal(bizId = null) {
+  editingBizId = bizId;
+  const modal = document.getElementById('bizModal');
+  const eyebrow = document.getElementById('bizModalEyebrow');
+  const nameInput = document.getElementById('bizNameInput');
+  const tagInput = document.getElementById('bizTagInput');
+  const colorPicker = document.getElementById('bizColorPicker');
+
+  // Build color picker
+  let selectedColorIdx = 0;
+  if (bizId) {
+    const biz = state.businesses.find(b => b.id === bizId);
+    nameInput.value = biz.name;
+    tagInput.value = biz.tag || '';
+    selectedColorIdx = biz.colorIdx;
+    eyebrow.textContent = 'Modifica Business Unit';
+  } else {
+    nameInput.value = '';
+    tagInput.value = '';
+    selectedColorIdx = state.businesses.length % PALETTE.length;
+    eyebrow.textContent = 'Nuova Business Unit';
+  }
+
+  colorPicker.innerHTML = '';
+  PALETTE.forEach((p, i) => {
+    const sw = document.createElement('div');
+    sw.className = 'color-swatch' + (i === selectedColorIdx ? ' selected' : '');
+    sw.style.background = p.color;
+    sw.dataset.colorIdx = i;
+    sw.addEventListener('click', () => {
+      colorPicker.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+      sw.classList.add('selected');
+    });
+    colorPicker.appendChild(sw);
+  });
+
+  modal.classList.add('open');
+  setTimeout(() => nameInput.focus(), 50);
+}
+
+function closeBizModal() {
+  document.getElementById('bizModal').classList.remove('open');
+  editingBizId = null;
+}
+
+function saveBiz() {
+  const name = document.getElementById('bizNameInput').value.trim();
+  const tag = document.getElementById('bizTagInput').value.trim();
+  const colorIdx = parseInt(document.querySelector('#bizColorPicker .selected')?.dataset.colorIdx || 0);
+
+  if (!name) {
+    document.getElementById('bizNameInput').focus();
+    return;
+  }
+
+  if (editingBizId) {
+    const biz = state.businesses.find(b => b.id === editingBizId);
+    biz.name = name;
+    biz.tag = tag;
+    biz.colorIdx = colorIdx;
+    showToast('Business Unit aggiornata');
+  } else {
+    const newBiz = { id: uid(), name, tag, colorIdx, tree: null };
+    state.businesses.push(newBiz);
+    state.activeBizId = newBiz.id;
+    showToast('Business Unit creata');
+  }
+
+  closeBizModal();
+  persist();
+  render();
+}
+
+function deleteBusiness(bizId) {
+  const biz = state.businesses.find(b => b.id === bizId);
+  if (!biz) return;
+  if (!confirm(`Eliminare "${biz.name}" e tutto il suo organigramma? L'azione è irreversibile.`)) return;
+  state.businesses = state.businesses.filter(b => b.id !== bizId);
+  if (state.activeBizId === bizId) {
+    state.activeBizId = state.businesses[0]?.id || null;
+  }
+  persist();
+  render();
+  showToast('Business Unit eliminata');
+}
+
+function openNodeModal(ctx) {
+  editingNodeContext = ctx;
+  const modal = document.getElementById('nodeModal');
+  const eyebrow = document.getElementById('nodeModalEyebrow');
+  const nameInput = document.getElementById('nodeNameInput');
+  const roleInput = document.getElementById('nodeRoleInput');
+  const deptInput = document.getElementById('nodeDeptInput');
+
+  if (ctx.nodeId) {
+    const biz = state.businesses.find(b => b.id === ctx.bizId);
+    const node = findNode(biz.tree, ctx.nodeId);
+    nameInput.value = node.name || '';
+    roleInput.value = node.role || '';
+    deptInput.value = node.dept || '';
+    tempNodePhoto = node.photo || null;
+    eyebrow.textContent = 'Modifica persona';
+  } else {
+    nameInput.value = '';
+    roleInput.value = '';
+    deptInput.value = '';
+    tempNodePhoto = null;
+    eyebrow.textContent = ctx.isRoot ? 'Nuovo vertice' : 'Aggiungi sotto';
+  }
+
+  setupAvatarUploader();
+  updateNodeAvatarPreview();
+
+  // Refresh initials live as the user types
+  nameInput.oninput = updateNodeAvatarPreview;
+
+  modal.classList.add('open');
+  setTimeout(() => nameInput.focus(), 50);
+}
+
+function updateNodeAvatarPreview() {
+  const preview = document.getElementById('nodeAvatarPreview');
+  const removeBtn = document.getElementById('nodeAvatarRemoveBtn');
+  const uploadLabel = document.getElementById('nodeAvatarUploadLabel');
+  if (!preview) return;
+  const name = document.getElementById('nodeNameInput').value || '';
+  if (tempNodePhoto) {
+    const safeUrl = String(tempNodePhoto).replace(/'/g, '%27');
+    preview.style.backgroundImage = `url('${safeUrl}')`;
+    preview.textContent = '';
+    removeBtn.style.display = '';
+    uploadLabel.textContent = 'Sostituisci foto';
+  } else {
+    preview.style.backgroundImage = '';
+    preview.textContent = getInitials(name);
+    removeBtn.style.display = 'none';
+    uploadLabel.textContent = 'Carica foto';
+  }
+}
+
+function setupAvatarUploader() {
+  const input = document.getElementById('nodeAvatarInput');
+  const uploadBtn = document.getElementById('nodeAvatarUploadBtn');
+  const removeBtn = document.getElementById('nodeAvatarRemoveBtn');
+  if (!input || !uploadBtn || !removeBtn) return;
+
+  uploadBtn.onclick = (e) => {
+    e.preventDefault();
+    input.click();
+  };
+
+  input.onchange = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    // Soft limit: avoid 20MB+ phone shots making the page hang on decode
+    if (file.size > 12 * 1024 * 1024) {
+      showToast('Foto troppo grande (max 12MB)');
+      input.value = '';
+      return;
+    }
+    try {
+      uploadBtn.disabled = true;
+      tempNodePhoto = await processPhotoFile(file, 192);
+      updateNodeAvatarPreview();
+    } catch (err) {
+      console.error(err);
+      showToast('Impossibile leggere l’immagine');
+    } finally {
+      uploadBtn.disabled = false;
+      input.value = '';
+    }
+  };
+
+  removeBtn.onclick = (e) => {
+    e.preventDefault();
+    tempNodePhoto = null;
+    updateNodeAvatarPreview();
+  };
+}
+
+function closeNodeModal() {
+  document.getElementById('nodeModal').classList.remove('open');
+  editingNodeContext = null;
+  tempNodePhoto = null;
+}
+
+function saveNode() {
+  const name = document.getElementById('nodeNameInput').value.trim();
+  const role = document.getElementById('nodeRoleInput').value.trim();
+  const dept = document.getElementById('nodeDeptInput').value.trim();
+
+  if (!name) {
+    document.getElementById('nodeNameInput').focus();
+    return;
+  }
+
+  const ctx = editingNodeContext;
+  const biz = state.businesses.find(b => b.id === ctx.bizId);
+  if (!biz) return;
+
+  const photo = tempNodePhoto || null;
+
+  if (ctx.nodeId) {
+    // EDIT
+    const node = findNode(biz.tree, ctx.nodeId);
+    node.name = name;
+    node.role = role;
+    node.dept = dept;
+    node.photo = photo;
+    showToast('Persona aggiornata');
+  } else if (ctx.isRoot) {
+    // CREATE ROOT
+    biz.tree = { id: uid(), name, role, dept, photo, activities: [], children: [] };
+    showToast('Vertice creato');
+  } else {
+    // ADD CHILD
+    const parent = findNode(biz.tree, ctx.parentId);
+    if (!parent.children) parent.children = [];
+    parent.children.push({ id: uid(), name, role, dept, photo, activities: [], children: [] });
+    showToast('Persona aggiunta');
+  }
+
+  closeNodeModal();
+  persist();
+  render();
+}
+
+function deleteNode(bizId, nodeId) {
+  const biz = state.businesses.find(b => b.id === bizId);
+  if (!biz || !biz.tree) return;
+  const node = findNode(biz.tree, nodeId);
+  if (!node) return;
+  const childCount = countChildren(node);
+  const msg = childCount > 0
+    ? `Eliminare "${node.name}" e ${childCount} ${childCount === 1 ? 'persona sottoposta' : 'persone sottoposte'}?`
+    : `Eliminare "${node.name}"?`;
+  if (!confirm(msg)) return;
+
+  // Find parent and remove
+  const parent = findParent(biz.tree, nodeId);
+  if (parent) {
+    parent.children = parent.children.filter(c => c.id !== nodeId);
+  }
+  persist();
+  render();
+  showToast('Eliminato');
+}
+
+function countChildren(node) {
+  if (!node.children || node.children.length === 0) return 0;
+  return node.children.reduce((sum, c) => sum + 1 + countChildren(c), 0);
+}
+
+function moveNode(bizId, nodeId, newParentId) {
+  const biz = state.businesses.find(b => b.id === bizId);
+  if (!biz || !biz.tree) return;
+
+  // Cannot move root
+  if (biz.tree.id === nodeId) return;
+
+  // Cannot move under itself or its own descendants
+  if (isDescendant(biz.tree, nodeId, newParentId)) {
+    showToast('Non puoi spostare una persona sotto un suo sottoposto', 'warn');
+    return;
+  }
+
+  // Already child of newParent? skip
+  const currentParent = findParent(biz.tree, nodeId);
+  if (currentParent && currentParent.id === newParentId) return;
+
+  // Detach
+  const detached = removeNode(biz.tree, nodeId);
+  if (!detached) return;
+
+  // Attach
+  const newParent = findNode(biz.tree, newParentId);
+  if (!newParent) return;
+  if (!newParent.children) newParent.children = [];
+  newParent.children.push(detached);
+
+  persist();
+  render();
+  showToast('Riorganizzato');
+}
+
+function showReorderIndicator(card, mode) {
+  let indicator = document.getElementById('reorderIndicator');
+  if (!indicator) {
+    indicator = document.createElement('div');
+    indicator.id = 'reorderIndicator';
+    indicator.className = 'reorder-indicator';
+    document.body.appendChild(indicator);
+  }
+  const rect = card.getBoundingClientRect();
+  const x = mode === 'before' ? rect.left - 8 : rect.right + 4;
+  indicator.style.left = x + 'px';
+  indicator.style.top = rect.top + 'px';
+  indicator.style.height = rect.height + 'px';
+  indicator.style.bottom = 'auto';
+  indicator.style.display = 'block';
+}
+
+function hideReorderIndicator() {
+  const indicator = document.getElementById('reorderIndicator');
+  if (indicator) indicator.style.display = 'none';
+}
+
+function reorderNode(bizId, nodeId, parentId, insertIdx) {
+  const biz = state.businesses.find(b => b.id === bizId);
+  if (!biz || !biz.tree) return;
+
+  // Cannot move root
+  if (biz.tree.id === nodeId) return;
+
+  // Cannot move under itself or descendants
+  if (isDescendant(biz.tree, nodeId, parentId)) {
+    showToast('Non puoi spostare una persona sotto un suo sottoposto');
+    return;
+  }
+
+  const targetParent = findNode(biz.tree, parentId);
+  if (!targetParent) return;
+  if (!targetParent.children) targetParent.children = [];
+
+  // Find current position
+  const currentParent = findParent(biz.tree, nodeId);
+  if (!currentParent) return;
+  const currentIdx = currentParent.children.findIndex(c => c.id === nodeId);
+  if (currentIdx < 0) return;
+
+  // Same parent + same position (or position right after itself) = no-op
+  if (currentParent.id === parentId) {
+    if (insertIdx === currentIdx || insertIdx === currentIdx + 1) {
+      return;
+    }
+  }
+
+  // Detach from current location
+  const [detached] = currentParent.children.splice(currentIdx, 1);
+
+  // Adjust insert index if we removed from before the insertion point in the same parent
+  let adjustedIdx = insertIdx;
+  if (currentParent.id === parentId && currentIdx < insertIdx) {
+    adjustedIdx = insertIdx - 1;
+  }
+  adjustedIdx = Math.max(0, Math.min(adjustedIdx, targetParent.children.length));
+
+  // Insert at the requested position
+  targetParent.children.splice(adjustedIdx, 0, detached);
+
+  persist();
+  render();
+  showToast('Ordine aggiornato');
+}
+
+/* ======================================================================
+   DASHBOARD — aggregated activities across all business units
+   ====================================================================== */
+
+function gatherAllActivities() {
+  const all = [];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  state.businesses.forEach(biz => {
+    if (!biz.tree) return;
+    const walk = (node) => {
+      if (Array.isArray(node.activities)) {
+        node.activities.forEach(act => {
+          let status = 'undated';
+          let diffDays = null;
+          if (act.date) {
+            const d = new Date(act.date);
+            d.setHours(0, 0, 0, 0);
+            if (!isNaN(d.getTime())) {
+              diffDays = Math.round((d - today) / 86400000);
+              if (diffDays < 0) status = 'overdue';
+              else if (diffDays <= 7) status = 'soon';
+              else status = 'upcoming';
+            }
+          } else if (act.recur && act.recur !== 'none') {
+            status = 'recurring';
+          }
+          all.push({ biz, node, activity: act, status, diffDays });
+        });
+      }
+      (node.children || []).forEach(walk);
+    };
+    walk(biz.tree);
+  });
+  return all;
+}
+
+function renderDashboard() {
+  const canvas = document.getElementById('canvas');
+  const all = gatherAllActivities();
+
+  // Apply filters
+  let filtered = all;
+  if (dashFilters.bizId !== 'all') {
+    filtered = filtered.filter(x => x.biz.id === dashFilters.bizId);
+  }
+  if (dashFilters.search) {
+    const q = dashFilters.search.toLowerCase();
+    filtered = filtered.filter(x =>
+      (x.activity.cosa || '').toLowerCase().includes(q) ||
+      (x.activity.come || '').toLowerCase().includes(q) ||
+      (x.node.name || '').toLowerCase().includes(q) ||
+      (x.node.role || '').toLowerCase().includes(q) ||
+      (x.node.dept || '').toLowerCase().includes(q)
+    );
+  }
+
+  // Group by status
+  const groups = { overdue: [], soon: [], upcoming: [], recurring: [], undated: [] };
+  filtered.forEach(x => groups[x.status].push(x));
+
+  // Sort by date ascending where applicable
+  const byDate = (a, b) => {
+    if (!a.activity.date && !b.activity.date) return 0;
+    if (!a.activity.date) return 1;
+    if (!b.activity.date) return -1;
+    return a.activity.date.localeCompare(b.activity.date);
+  };
+  groups.overdue.sort(byDate);
+  groups.soon.sort(byDate);
+  groups.upcoming.sort(byDate);
+  groups.recurring.sort((a, b) => (a.node.name || '').localeCompare(b.node.name || ''));
+  groups.undated.sort((a, b) => (a.node.name || '').localeCompare(b.node.name || ''));
+
+  // Stats from full set (not filtered) to give the user absolute context
+  const stats = {
+    total: all.length,
+    overdue: all.filter(x => x.status === 'overdue').length,
+    soon: all.filter(x => x.status === 'soon').length,
+    upcoming: all.filter(x => x.status === 'upcoming' || x.status === 'recurring' || x.status === 'undated').length,
+  };
+
+  canvas.innerHTML = '';
+
+  const root = document.createElement('div');
+  root.className = 'dashboard';
+  root.innerHTML = `
+    <div class="dash-summary">
+      <div class="dash-stat total">
+        <div class="dash-stat-label">Totale</div>
+        <div class="dash-stat-value">${stats.total}</div>
+        <div class="dash-stat-sub">attività tracciate</div>
+      </div>
+      <div class="dash-stat overdue">
+        <div class="dash-stat-label">Scadute</div>
+        <div class="dash-stat-value">${stats.overdue}</div>
+        <div class="dash-stat-sub">richiedono attenzione</div>
+      </div>
+      <div class="dash-stat soon">
+        <div class="dash-stat-label">Entro 7 giorni</div>
+        <div class="dash-stat-value">${stats.soon}</div>
+        <div class="dash-stat-sub">in arrivo</div>
+      </div>
+      <div class="dash-stat upcoming">
+        <div class="dash-stat-label">Future</div>
+        <div class="dash-stat-value">${stats.upcoming}</div>
+        <div class="dash-stat-sub">programmate o ricorrenti</div>
+      </div>
+    </div>
+
+    <div class="dash-filters">
+      <button class="dash-chip ${dashFilters.bizId === 'all' ? 'active' : ''}" data-biz-filter="all">Tutte</button>
+      ${state.businesses.map(b => {
+        const p = PALETTE[b.colorIdx % PALETTE.length];
+        return `<button class="dash-chip ${dashFilters.bizId === b.id ? 'active' : ''}" data-biz-filter="${b.id}">
+          <span class="dash-chip-dot" style="background:${p.color}; box-shadow: 0 0 8px ${p.color}"></span>
+          ${escapeHtml(b.name)}
+        </button>`;
+      }).join('')}
+      <div class="dash-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="dashSearchInput" placeholder="Cerca per attività, persona, ruolo…" value="${escapeHtml(dashFilters.search)}">
+        ${dashFilters.search ? `<button class="dash-clear-search" id="dashClearSearch" title="Pulisci"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>` : ''}
+      </div>
+    </div>
+
+    ${all.length === 0 ? renderDashEmpty('vuoto') : (filtered.length === 0 ? renderDashEmpty('filtered') : `
+      ${renderDashSection('overdue',   'Scadute',           groups.overdue)}
+      ${renderDashSection('soon',      'Entro 7 giorni',    groups.soon)}
+      ${renderDashSection('upcoming',  'Prossime',          groups.upcoming)}
+      ${renderDashSection('recurring', 'Ricorrenti senza data', groups.recurring)}
+      ${renderDashSection('undated',   'Senza data',        groups.undated)}
+    `)}
+  `;
+  canvas.appendChild(root);
+
+  wireDashboardInteractions(root);
+}
+
+function renderDashEmpty(kind) {
+  if (kind === 'filtered') {
+    return `
+      <div class="dash-empty">
+        <h3 class="dash-empty-title">Nessun <em>risultato</em></h3>
+        <p class="dash-empty-text">Nessuna attività corrisponde ai filtri attivi. Prova a cambiare business o testo di ricerca.</p>
+      </div>
+    `;
+  }
+  return `
+    <div class="dash-empty">
+      <svg class="dash-empty-svg" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="20" y="20" width="60" height="60" rx="3"/>
+        <line x1="30" y1="35" x2="70" y2="35"/>
+        <line x1="30" y1="50" x2="70" y2="50"/>
+        <line x1="30" y1="65" x2="55" y2="65"/>
+      </svg>
+      <h3 class="dash-empty-title">Nessuna <em>attività</em> ancora</h3>
+      <p class="dash-empty-text">Aggiungi attività dalle card persona (apri la procedura con la freccia ▼) per vederle aggregate qui.</p>
+    </div>
+  `;
+}
+
+function renderDashSection(key, title, items) {
+  if (!items.length) return '';
+  return `
+    <div class="dash-section ${key}">
+      <div class="dash-section-header">
+        <h3 class="dash-section-title">${title}</h3>
+        <span class="dash-section-count">${String(items.length).padStart(2, '0')}</span>
+      </div>
+      <div class="dash-table">
+        ${items.map(x => renderDashRow(x)).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function renderDashRow({ biz, node, activity, status }) {
+  const palette = PALETTE[biz.colorIdx % PALETTE.length];
+  let extraClass = '';
+  if (status === 'overdue') extraClass = 'is-overdue';
+  else if (status === 'soon') extraClass = 'is-soon';
+  return `
+    <div class="dash-row ${extraClass}"
+         data-biz-id="${biz.id}"
+         data-node-id="${node.id}"
+         data-activity-id="${activity.id}"
+         style="--biz-color:${palette.color}">
+      <div class="dash-biz">
+        <span class="dash-biz-dot" style="background:${palette.color}; color:${palette.color}"></span>
+        <span class="dash-biz-name">${escapeHtml(biz.name)}</span>
+      </div>
+      <div class="dash-person-wrap">
+        ${renderAvatar(node, palette, 'sm')}
+        <div class="dash-person-text">
+          <div class="dash-person-name">${escapeHtml(node.name || '—')}</div>
+          <div class="dash-person-role">${escapeHtml(node.role || node.dept || '')}</div>
+        </div>
+      </div>
+      <div class="activity-cell cell-cosa" data-field="cosa" tabindex="0">${escapeHtml(activity.cosa || '')}</div>
+      <div class="activity-cell cell-come" data-field="come" tabindex="0">${escapeHtml(activity.come || '')}</div>
+      <div class="cell-quando">${renderQuandoCell(activity, biz)}</div>
+      <div class="dash-actions">
+        <button class="dash-action-btn goto" data-act="goto" title="Vai alla card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </button>
+        <button class="dash-action-btn danger" data-act="remove" title="Elimina attività">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function wireDashboardInteractions(root) {
+  // Filter chips
+  root.querySelectorAll('[data-biz-filter]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      dashFilters.bizId = btn.dataset.bizFilter;
+      renderDashboard();
+    });
+  });
+
+  // Search input — debounced, with focus/caret restore after re-render
+  const searchInput = root.querySelector('#dashSearchInput');
+  if (searchInput) {
+    let st;
+    const handle = () => {
+      clearTimeout(st);
+      st = setTimeout(() => {
+        const cur = searchInput.selectionStart;
+        dashFilters.search = searchInput.value;
+        renderDashboard();
+        const newInput = document.getElementById('dashSearchInput');
+        if (newInput) {
+          newInput.focus();
+          try { newInput.setSelectionRange(cur, cur); } catch (e) {}
+        }
+      }, 180);
+    };
+    searchInput.addEventListener('input', handle);
+  }
+  const clearBtn = root.querySelector('#dashClearSearch');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      dashFilters.search = '';
+      renderDashboard();
+    });
+  }
+
+  // Per-row interactions — reuses the same edit machinery as the org card
+  root.querySelectorAll('.dash-row').forEach(row => {
+    const bizId = row.dataset.bizId;
+    const nodeId = row.dataset.nodeId;
+    const activityId = row.dataset.activityId;
+
+    row.querySelectorAll('.activity-cell[data-field="cosa"], .activity-cell[data-field="come"]').forEach(cell => {
+      cell.addEventListener('click', (e) => {
+        e.stopPropagation();
+        startInlineEdit(cell, bizId, nodeId, activityId, cell.dataset.field);
+      });
+    });
+
+    const dateEl = row.querySelector('.quando-date');
+    if (dateEl) {
+      dateEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        startDateEdit(row, bizId, nodeId, activityId);
+      });
+    }
+
+    const recurEl = row.querySelector('.quando-recur');
+    if (recurEl) {
+      recurEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openRecurPopover(e.currentTarget, bizId, nodeId, activityId);
+      });
+    }
+
+    const gotoBtn = row.querySelector('[data-act="goto"]');
+    if (gotoBtn) {
+      gotoBtn.addEventListener('click', () => jumpToNode(bizId, nodeId));
+    }
+
+    const removeBtn = row.querySelector('[data-act="remove"]');
+    if (removeBtn) {
+      removeBtn.addEventListener('click', () => removeActivity(bizId, nodeId, activityId));
+    }
+  });
+}
+
+function jumpToNode(bizId, nodeId) {
+  state.activeView = 'business';
+  state.activeBizId = bizId;
+  persist();
+  render();
+  setTimeout(() => {
+    const card = document.querySelector(`.node-card[data-node-id="${nodeId}"]`);
+    if (!card) return;
+    card.classList.add('expanded');
+    card.draggable = false;
+    card.classList.add('highlight-jump');
+    card.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+    setTimeout(() => card.classList.remove('highlight-jump'), 1700);
+  }, 60);
+}
+
+function exportActivitiesCsv() {
+  const all = gatherAllActivities();
+  if (all.length === 0) {
+    showToast('Nessuna attività da esportare');
+    return;
+  }
+  const recurLabels = {
+    none: 'Una volta', daily: 'Giornaliera', weekly: 'Settimanale',
+    monthly: 'Mensile', quarterly: 'Trimestrale', yearly: 'Annuale'
+  };
+  const statusLabels = {
+    overdue: 'Scaduta', soon: 'Entro 7 giorni', upcoming: 'Futura',
+    recurring: 'Ricorrente', undated: 'Senza data'
+  };
+  const esc = (s) => `"${String(s == null ? '' : s).replace(/"/g, '""')}"`;
+  const header = ['Business', 'Tag', 'Persona', 'Ruolo', 'Dipartimento', 'Cosa', 'Come', 'Quando', 'Ricorrenza', 'Stato'];
+  const rows = [header.map(esc).join(',')];
+  all.forEach(({ biz, node, activity, status }) => {
+    rows.push([
+      biz.name, biz.tag || '',
+      node.name || '', node.role || '', node.dept || '',
+      activity.cosa || '', activity.come || '',
+      activity.date || '', recurLabels[activity.recur] || recurLabels.none,
+      statusLabels[status] || status
+    ].map(esc).join(','));
+  });
+  // BOM for Excel UTF-8 detection
+  const blob = new Blob(['﻿' + rows.join('\n')], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `atlas_attivita_${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('CSV esportato');
+}
+
+/* ----------- EXPORT ----------- */
+function exportJson() {
+  const biz = state.businesses.find(b => b.id === state.activeBizId);
+  if (!biz) return;
+  const data = JSON.stringify(biz, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${biz.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_orgchart.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('JSON esportato');
+}
+
+/* ----------- TOAST ----------- */
+let toastTimer = null;
+function showToast(text) {
+  const toast = document.getElementById('toast');
+  document.getElementById('toastText').textContent = text;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+}
+
+/* ----------- HELPERS ----------- */
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+/* ----------- AVATAR HELPERS ----------- */
+function getInitials(name) {
+  if (!name) return '·';
+  const parts = String(name).trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '·';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function renderAvatar(node, palette, sizeClass = '') {
+  const color = palette ? palette.color : 'var(--amber)';
+  if (node && node.photo) {
+    // Use CSS background-image; escape only the quotes in the data URL.
+    const safeUrl = String(node.photo).replace(/'/g, '%27');
+    return `<div class="avatar ${sizeClass}" style="background-image:url('${safeUrl}'); border-color:${color}"></div>`;
+  }
+  const initials = getInitials(node && node.name);
+  return `<div class="avatar ${sizeClass}" style="border-color:${color}; color:${color}">${escapeHtml(initials)}</div>`;
+}
+
+/**
+ * Read an image File, center-crop to a square, downscale to 192px, return JPEG dataURL.
+ * Keeps storage payload tiny (~5–10 KB per avatar) so localStorage stays healthy.
+ */
+async function processPhotoFile(file, size = 192) {
+  if (!file || !file.type || !file.type.startsWith('image/')) {
+    throw new Error('not_image');
+  }
+  const dataUrl = await new Promise((res, rej) => {
+    const fr = new FileReader();
+    fr.onload = () => res(fr.result);
+    fr.onerror = () => rej(new Error('read_failed'));
+    fr.readAsDataURL(file);
+  });
+  const img = await new Promise((res, rej) => {
+    const im = new Image();
+    im.onload = () => res(im);
+    im.onerror = () => rej(new Error('decode_failed'));
+    im.src = dataUrl;
+  });
+  const srcSize = Math.min(img.naturalWidth, img.naturalHeight);
+  const sx = (img.naturalWidth - srcSize) / 2;
+  const sy = (img.naturalHeight - srcSize) / 2;
+  const canvas = document.createElement('canvas');
+  canvas.width = size; canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(img, sx, sy, srcSize, srcSize, 0, 0, size, size);
+  return canvas.toDataURL('image/jpeg', 0.82);
+}
+
+/* ----------- MASTER RENDER ----------- */
+function render() {
+  renderSidebar();
+  renderTopbar();
+  const canvas = document.getElementById('canvas');
+  const wrap = document.querySelector('.canvas-wrap');
+  if (state.activeView === 'dashboard') {
+    canvas.classList.add('dashboard-mode');
+    wrap.classList.add('dashboard-mode');
+    renderDashboard();
+  } else {
+    canvas.classList.remove('dashboard-mode');
+    wrap.classList.remove('dashboard-mode');
+    renderCanvas();
+  }
+}
+
+/* ----------- WIRE GLOBAL EVENTS ----------- */
+document.getElementById('addBizBtn').addEventListener('click', () => openBizModal());
+document.getElementById('bizModalCancel').addEventListener('click', closeBizModal);
+document.getElementById('bizModalSave').addEventListener('click', saveBiz);
+document.getElementById('nodeModalCancel').addEventListener('click', closeNodeModal);
+document.getElementById('nodeModalSave').addEventListener('click', saveNode);
+
+// Enter key in modals
+document.getElementById('bizModal').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && (e.target.tagName === 'INPUT')) saveBiz();
+  if (e.key === 'Escape') closeBizModal();
+});
+document.getElementById('nodeModal').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && (e.target.tagName === 'INPUT')) saveNode();
+  if (e.key === 'Escape') closeNodeModal();
+});
+
+// Click outside to close
+document.getElementById('bizModal').addEventListener('click', (e) => {
+  if (e.target.id === 'bizModal') closeBizModal();
+});
+document.getElementById('nodeModal').addEventListener('click', (e) => {
+  if (e.target.id === 'nodeModal') closeNodeModal();
+});
+
+// Expose for inline handlers
+window.openBizModal = openBizModal;
+window.openNodeModal = openNodeModal;
+
+/* ======================================================================
+   AUTH (magic link) — gates the rest of the app
+   ====================================================================== */
+
+const authOverlay = document.getElementById('authOverlay');
+const authForm    = document.getElementById('authForm');
+const authMsg     = document.getElementById('authMsg');
+const authEmail   = document.getElementById('authEmailInput');
+const authBtn     = document.getElementById('authSubmitBtn');
+const authBtnLbl  = document.getElementById('authBtnLabel');
+const userEmailEl = document.getElementById('userEmail');
+const signoutBtn  = document.getElementById('signoutBtn');
+
+function showAuth() {
+  authOverlay.classList.add('open');
+  // Try to repopulate the email field if it was used recently in this browser
+  const last = localStorage.getItem('atlas_last_email') || '';
+  if (last) authEmail.value = last;
+  setTimeout(() => authEmail.focus(), 60);
+}
+function hideAuth() {
+  authOverlay.classList.remove('open');
+  authMsg.textContent = '';
+  authMsg.className = 'auth-msg';
+}
+
+authForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = authEmail.value.trim();
+  if (!email || !email.includes('@')) {
+    authMsg.textContent = 'Inserisci un’email valida';
+    authMsg.className = 'auth-msg error';
+    return;
+  }
+  authBtn.disabled = true;
+  authBtnLbl.textContent = 'Invio…';
+  authMsg.textContent = '';
+  authMsg.className = 'auth-msg';
+  try {
+    const { error } = await sb.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.origin + window.location.pathname }
+    });
+    if (error) throw error;
+    localStorage.setItem('atlas_last_email', email);
+    authMsg.innerHTML = `Link inviato a <strong>${escapeHtml(email)}</strong>. Apri l’email e clicca il pulsante per accedere.`;
+    authMsg.className = 'auth-msg success';
+    authBtnLbl.textContent = 'Link inviato';
+  } catch (err) {
+    console.error(err);
+    authMsg.textContent = err.message || 'Impossibile inviare il link. Riprova.';
+    authMsg.className = 'auth-msg error';
+    authBtnLbl.textContent = 'Invia link di accesso';
+    authBtn.disabled = false;
+  }
+});
+
+signoutBtn.addEventListener('click', async () => {
+  await sb.auth.signOut();
+  currentUser = null;
+  state = { businesses: [], activeBizId: null, activeView: 'business' };
+  render();
+  authBtn.disabled = false;
+  authBtnLbl.textContent = 'Invia link di accesso';
+  showAuth();
+});
+
+async function handleSession(session) {
+  if (session && session.user) {
+    currentUser = session.user;
+    userEmailEl.textContent = session.user.email || '';
+    userEmailEl.title = session.user.email || '';
+    await loadState();
+    render();
+    hideAuth();
+  } else {
+    currentUser = null;
+    showAuth();
+  }
+}
+
+sb.auth.onAuthStateChange((_event, session) => {
+  handleSession(session);
+});
+
+/* ----------- BOOT ----------- */
+(async function boot() {
+  try {
+    // detectSessionInUrl is true, so a magic-link callback URL will be
+    // picked up here automatically.
+    const { data: { session } } = await sb.auth.getSession();
+    await handleSession(session);
+    setSaveStatus('saved');
+  } catch (e) {
+    console.error('Boot failed', e);
+    showAuth();
+  }
+})();
+</script>
+
+</body>
+</html>
