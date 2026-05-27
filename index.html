@@ -1737,11 +1737,11 @@
         <div class="save-dot" id="saveDot"></div>
         <span id="saveText">salvato</span>
       </div>
-      <button class="signout-btn" id="signoutBtn" title="Esci">Esci</button>
+      <button class="signout-btn" id="signoutBtn" title="Inizia una nuova sessione (i dati attuali restano salvati ma non più accessibili da questo browser)">Nuova sessione</button>
     </div>
     <div class="sidebar-footer" style="border-top:1px solid var(--line-soft);">
       <span class="user-email" id="userEmail" title=""></span>
-      <span id="footerVersion">v1.3</span>
+      <span id="footerVersion">v1.4</span>
     </div>
   </aside>
 
@@ -1841,7 +1841,7 @@
 
 <script>
 /* ======================================================================
-   ATLAS ORG STUDIO — MULTI-BUSINESS ORG CHART · v1.3 (Supabase prototype)
+   ATLAS ORG STUDIO — MULTI-BUSINESS ORG CHART · v1.4 (Supabase + anon auth)
    ====================================================================== */
 
 // ---------- Supabase config ----------
@@ -3653,103 +3653,82 @@ window.openBizModal = openBizModal;
 window.openNodeModal = openNodeModal;
 
 /* ======================================================================
-   AUTH (magic link) — gates the rest of the app
+   AUTH (anonymous) — zero friction. Every browser gets an anonymous
+   user automatically on first visit. RLS still works because every
+   session has a real auth.uid().
+   To reset state: click "Nuova sessione" → signs out + reloads → new
+   anonymous user → fresh seed.
    ====================================================================== */
 
-const authOverlay = document.getElementById('authOverlay');
-const authForm    = document.getElementById('authForm');
-const authMsg     = document.getElementById('authMsg');
-const authEmail   = document.getElementById('authEmailInput');
-const authBtn     = document.getElementById('authSubmitBtn');
-const authBtnLbl  = document.getElementById('authBtnLabel');
 const userEmailEl = document.getElementById('userEmail');
 const signoutBtn  = document.getElementById('signoutBtn');
+const authOverlay = document.getElementById('authOverlay');
 
-function showAuth() {
-  authOverlay.classList.add('open');
-  // Try to repopulate the email field if it was used recently in this browser
-  const last = localStorage.getItem('atlas_last_email') || '';
-  if (last) authEmail.value = last;
-  setTimeout(() => authEmail.focus(), 60);
-}
-function hideAuth() {
-  authOverlay.classList.remove('open');
-  authMsg.textContent = '';
-  authMsg.className = 'auth-msg';
-}
-
-authForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const email = authEmail.value.trim();
-  if (!email || !email.includes('@')) {
-    authMsg.textContent = 'Inserisci un’email valida';
-    authMsg.className = 'auth-msg error';
-    return;
-  }
-  authBtn.disabled = true;
-  authBtnLbl.textContent = 'Invio…';
-  authMsg.textContent = '';
-  authMsg.className = 'auth-msg';
-  try {
-    const { error } = await sb.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: window.location.origin + window.location.pathname }
-    });
-    if (error) throw error;
-    localStorage.setItem('atlas_last_email', email);
-    authMsg.innerHTML = `Link inviato a <strong>${escapeHtml(email)}</strong>. Apri l’email e clicca il pulsante per accedere.`;
-    authMsg.className = 'auth-msg success';
-    authBtnLbl.textContent = 'Link inviato';
-  } catch (err) {
-    console.error(err);
-    authMsg.textContent = err.message || 'Impossibile inviare il link. Riprova.';
-    authMsg.className = 'auth-msg error';
-    authBtnLbl.textContent = 'Invia link di accesso';
-    authBtn.disabled = false;
-  }
-});
+// Permanently hide the email auth overlay — we don't use it.
+if (authOverlay) authOverlay.remove();
 
 signoutBtn.addEventListener('click', async () => {
+  if (!confirm('Vuoi iniziare una nuova sessione? I dati di questa sessione resteranno salvati ma non saranno più accessibili da questo browser.')) return;
   await sb.auth.signOut();
-  currentUser = null;
-  state = { businesses: [], activeBizId: null, activeView: 'business' };
-  render();
-  authBtn.disabled = false;
-  authBtnLbl.textContent = 'Invia link di accesso';
-  showAuth();
+  location.reload();
 });
 
 async function handleSession(session) {
-  if (session && session.user) {
-    currentUser = session.user;
-    userEmailEl.textContent = session.user.email || '';
-    userEmailEl.title = session.user.email || '';
-    await loadState();
-    render();
-    hideAuth();
-  } else {
-    currentUser = null;
-    showAuth();
-  }
+  if (!session || !session.user) return;
+  currentUser = session.user;
+  const shortId = session.user.id.slice(0, 8);
+  userEmailEl.textContent = `sessione · ${shortId}`;
+  userEmailEl.title = session.user.id;
+  await loadState();
+  render();
 }
 
 sb.auth.onAuthStateChange((_event, session) => {
-  handleSession(session);
+  if (session) handleSession(session);
 });
 
 /* ----------- BOOT ----------- */
 (async function boot() {
   try {
-    // detectSessionInUrl is true, so a magic-link callback URL will be
-    // picked up here automatically.
-    const { data: { session } } = await sb.auth.getSession();
+    let { data: { session } } = await sb.auth.getSession();
+    if (!session) {
+      // First visit on this browser — sign in anonymously
+      const { data, error } = await sb.auth.signInAnonymously();
+      if (error) {
+        if (/anonymous.*disabled/i.test(error.message)) {
+          showSetupError(
+            'Anonymous Sign-In è disabilitato su Supabase.',
+            'Vai su Supabase → Authentication → Sign In / Up → Anonymous Sign-Ins → abilita il toggle. Poi ricarica la pagina.'
+          );
+          return;
+        }
+        throw error;
+      }
+      session = data.session;
+    }
     await handleSession(session);
     setSaveStatus('saved');
   } catch (e) {
     console.error('Boot failed', e);
-    showAuth();
+    showSetupError('Errore di avvio', e.message || String(e));
   }
 })();
+
+function showSetupError(title, detail) {
+  document.body.innerHTML = `
+    <div style="
+      position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+      padding:40px;background:#2a2620;color:#f8f2e6;font-family:-apple-system,sans-serif;
+    ">
+      <div style="max-width:520px;background:#221e18;border:1px solid #524a3e;border-radius:6px;padding:32px;">
+        <div style="font-family:monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:#e8a04a;margin-bottom:6px;">Atlas · setup</div>
+        <h1 style="font-family:Georgia,serif;font-weight:400;font-size:24px;margin:0 0 12px;">${escapeHtml(title)}</h1>
+        <p style="color:#c2b8a4;font-size:14px;line-height:1.55;margin:0 0 16px;">${escapeHtml(detail)}</p>
+        <button onclick="location.reload()" style="background:#e8a04a;border:none;color:#2a2620;padding:10px 16px;font-weight:600;border-radius:3px;cursor:pointer;font-size:13px;">Ricarica</button>
+      </div>
+    </div>
+  `;
+}
 </script>
 
 </body>
