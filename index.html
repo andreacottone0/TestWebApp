@@ -3695,14 +3695,16 @@ sb.auth.onAuthStateChange((_event, session) => {
       // First visit on this browser — sign in anonymously
       const { data, error } = await sb.auth.signInAnonymously();
       if (error) {
-        if (/anonymous.*disabled/i.test(error.message)) {
+        const msg = error.message || String(error);
+        if (/anonymous.*disabled|anonymous_provider_disabled|signups.*disabled/i.test(msg)) {
           showSetupError(
             'Anonymous Sign-In è disabilitato su Supabase.',
-            'Vai su Supabase → Authentication → Sign In / Up → Anonymous Sign-Ins → abilita il toggle. Poi ricarica la pagina.'
+            `Vai su Supabase → Authentication → Sign In / Up → "Allow anonymous sign-ins" → ON → Save in fondo.\n\nMessaggio esatto da Supabase: "${msg}"`
           );
           return;
         }
-        throw error;
+        showSetupError('Errore login anonimo', `${msg}\n\n(codice: ${error.status || 'n/d'})`);
+        return;
       }
       session = data.session;
     }
@@ -3720,10 +3722,10 @@ function showSetupError(title, detail) {
       position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
       padding:40px;background:#2a2620;color:#f8f2e6;font-family:-apple-system,sans-serif;
     ">
-      <div style="max-width:520px;background:#221e18;border:1px solid #524a3e;border-radius:6px;padding:32px;">
+      <div style="max-width:560px;background:#221e18;border:1px solid #524a3e;border-radius:6px;padding:32px;">
         <div style="font-family:monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:#e8a04a;margin-bottom:6px;">Atlas · setup</div>
         <h1 style="font-family:Georgia,serif;font-weight:400;font-size:24px;margin:0 0 12px;">${escapeHtml(title)}</h1>
-        <p style="color:#c2b8a4;font-size:14px;line-height:1.55;margin:0 0 16px;">${escapeHtml(detail)}</p>
+        <pre style="color:#c2b8a4;font-size:13px;line-height:1.55;margin:0 0 18px;white-space:pre-wrap;font-family:-apple-system,sans-serif;">${escapeHtml(detail)}</pre>
         <button onclick="location.reload()" style="background:#e8a04a;border:none;color:#2a2620;padding:10px 16px;font-weight:600;border-radius:3px;cursor:pointer;font-size:13px;">Ricarica</button>
       </div>
     </div>
