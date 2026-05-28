@@ -1986,6 +1986,409 @@
     margin: 0 auto 22px;
     line-height: 1.55;
   }
+
+  /* ---------- PERSONS STRIP (inside each role card in Vista Aziendale) ---------- */
+  .persons-strip {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed rgba(255,255,255,0.08);
+  }
+  .person-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 9px 3px 3px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--line-soft);
+    cursor: pointer;
+    transition: all 0.15s;
+    max-width: 100%;
+  }
+  .person-pill:hover {
+    background: rgba(255,255,255,0.07);
+    border-color: var(--biz-color, var(--line));
+  }
+  .person-pill .avatar {
+    width: 24px;
+    height: 24px;
+    border-width: 1.5px;
+    font-size: 9px;
+  }
+  .person-pill-name {
+    font-family: var(--serif);
+    font-size: 12px;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 130px;
+  }
+  .person-add-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1px dashed var(--line);
+    background: transparent;
+    color: var(--ink-mute);
+    cursor: pointer;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .person-add-btn:hover {
+    border-color: var(--biz-color, var(--amber));
+    color: var(--biz-color, var(--amber));
+    background: var(--amber-glow);
+  }
+  .person-add-btn svg { width: 12px; height: 12px; }
+
+  .persons-strip-empty {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 11.5px;
+    color: var(--ink-mute);
+    margin-right: 4px;
+  }
+
+  .delete-person-btn:hover {
+    background: rgba(217,122,108,0.08) !important;
+    border-color: var(--rose) !important;
+  }
+
+  /* ---------- FULL-SCREEN MODE ---------- */
+  .app.fullscreen {
+    grid-template-columns: 0 1fr;
+  }
+  .app.fullscreen .sidebar {
+    display: none;
+  }
+  .fullscreen-toggle {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--ink-mute);
+    cursor: pointer;
+    padding: 7px 9px;
+    border-radius: 3px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .fullscreen-toggle:hover {
+    border-color: var(--amber);
+    color: var(--amber);
+  }
+  .fullscreen-toggle svg { width: 14px; height: 14px; }
+
+  /* When in fullscreen mode, give the canvas a touch more breathing room
+     and surface a subtle "exit fullscreen" hint */
+  .app.fullscreen .topbar {
+    padding-left: 36px;
+  }
+
+  /* ---------- PROCEDURE EDITOR (full-screen, Notion-like) ---------- */
+  .procedure-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1500;
+    background: var(--bg-deep);
+    background-image:
+      radial-gradient(ellipse 60% 40% at 20% 0%, rgba(232,160,74,0.05), transparent 70%),
+      radial-gradient(ellipse 60% 40% at 80% 100%, rgba(111,154,184,0.04), transparent 70%);
+    display: none;
+    flex-direction: column;
+  }
+  .procedure-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+
+  .proc-topbar {
+    padding: 20px 36px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    background: var(--bg-panel);
+  }
+  .proc-breadcrumb {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+  }
+  .proc-breadcrumb-context {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 50%;
+  }
+  .proc-breadcrumb-context strong {
+    color: var(--ink-dim);
+    font-weight: 500;
+  }
+  .proc-title-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    outline: none;
+    padding: 4px 0;
+    min-width: 0;
+  }
+  .proc-title-input::placeholder { color: var(--ink-mute); font-style: italic; font-weight: 300; }
+
+  .proc-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .proc-save-status {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    color: var(--ink-mute);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .proc-save-status .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--sage);
+    box-shadow: 0 0 8px var(--sage);
+  }
+  .proc-save-status.saving .dot {
+    background: var(--citrus);
+    box-shadow: 0 0 8px var(--citrus);
+    animation: pulse 1s infinite;
+  }
+  .proc-close-btn {
+    background: var(--bg-elev);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 8px 14px;
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    border-radius: 3px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+  }
+  .proc-close-btn:hover { border-color: var(--ink-mute); background: var(--bg-elev-2); }
+  .proc-close-btn svg { width: 13px; height: 13px; }
+
+  .proc-toolbar {
+    padding: 10px 36px;
+    border-bottom: 1px solid var(--line-soft);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+    background: rgba(0,0,0,0.12);
+  }
+  .proc-tool-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--ink-dim);
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 3px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    transition: all 0.12s;
+    min-width: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .proc-tool-btn:hover {
+    background: var(--bg-elev);
+    color: var(--ink);
+  }
+  .proc-tool-btn.active {
+    background: var(--bg-elev-2);
+    color: var(--amber);
+    border-color: rgba(232,160,74,0.3);
+  }
+  .proc-tool-btn svg { width: 13px; height: 13px; }
+  .proc-tool-sep {
+    width: 1px;
+    height: 18px;
+    background: var(--line);
+    margin: 0 4px;
+  }
+
+  .proc-body-wrap {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0;
+  }
+  .proc-body {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 48px 36px 120px;
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    outline: none;
+    min-height: calc(100vh - 200px);
+  }
+  .proc-body:empty::before {
+    content: attr(data-placeholder);
+    color: var(--ink-mute);
+    font-style: italic;
+    font-family: var(--serif);
+    font-weight: 300;
+    pointer-events: none;
+  }
+  .proc-body h1 {
+    font-family: var(--serif);
+    font-size: 30px;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    margin: 24px 0 12px;
+    line-height: 1.2;
+  }
+  .proc-body h2 {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    margin: 22px 0 10px;
+    color: var(--ink);
+  }
+  .proc-body h3 {
+    font-family: var(--serif);
+    font-size: 17px;
+    font-weight: 600;
+    margin: 18px 0 8px;
+    color: var(--ink-dim);
+  }
+  .proc-body p { margin: 0 0 12px; }
+  .proc-body ul, .proc-body ol {
+    margin: 8px 0 16px;
+    padding-left: 26px;
+  }
+  .proc-body li { margin-bottom: 4px; }
+  .proc-body ul[data-type="checklist"] {
+    list-style: none;
+    padding-left: 4px;
+  }
+  .proc-body ul[data-type="checklist"] > li {
+    position: relative;
+    padding-left: 28px;
+    margin-bottom: 6px;
+    cursor: default;
+  }
+  .proc-body ul[data-type="checklist"] > li::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 4px;
+    width: 16px; height: 16px;
+    border: 1.5px solid var(--line);
+    border-radius: 3px;
+    background: transparent;
+    transition: all 0.15s;
+  }
+  .proc-body ul[data-type="checklist"] > li.checked {
+    color: var(--ink-mute);
+    text-decoration: line-through;
+  }
+  .proc-body ul[data-type="checklist"] > li.checked::before {
+    background: var(--amber);
+    border-color: var(--amber);
+  }
+  .proc-body ul[data-type="checklist"] > li.checked::after {
+    content: '✓';
+    position: absolute;
+    left: 3px; top: 1px;
+    color: var(--bg-deep);
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .proc-body ul[data-type="checklist"] > li::before {
+    cursor: pointer;
+    pointer-events: auto;
+  }
+  .proc-body blockquote {
+    margin: 14px 0;
+    padding: 10px 16px;
+    border-left: 3px solid var(--amber);
+    color: var(--ink-dim);
+    font-style: italic;
+    font-family: var(--serif);
+    background: rgba(232,160,74,0.04);
+  }
+  .proc-body code {
+    background: rgba(255,255,255,0.06);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--amber);
+  }
+  .proc-body a {
+    color: var(--azure);
+    text-decoration: underline;
+    text-decoration-color: rgba(111,154,184,0.4);
+  }
+  .proc-body a:hover { text-decoration-color: var(--azure); }
+  .proc-body strong { color: var(--ink); font-weight: 600; }
+  .proc-body em { color: var(--ink); font-style: italic; }
+
+  .proc-body-wrap::-webkit-scrollbar { width: 10px; }
+  .proc-body-wrap::-webkit-scrollbar-track { background: transparent; }
+  .proc-body-wrap::-webkit-scrollbar-thumb { background: var(--line); border-radius: 5px; }
+  .proc-body-wrap::-webkit-scrollbar-thumb:hover { background: var(--ink-mute); }
+
+  /* Procedure indicator on activity rows */
+  .activity-cell.cell-cosa {
+    position: relative;
+  }
+  .activity-procedure-btn {
+    background: transparent;
+    border: none;
+    color: var(--ink-mute);
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 2px;
+    opacity: 0;
+    transition: all 0.15s;
+    margin-left: 6px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .activity-row:hover .activity-procedure-btn { opacity: 1; }
+  .activity-procedure-btn:hover { color: var(--amber); background: rgba(232,160,74,0.08); }
+  .activity-procedure-btn.has-content {
+    opacity: 1;
+    color: var(--amber);
+  }
+  .activity-procedure-btn svg { width: 12px; height: 12px; }
 </style>
 </head>
 <body>
@@ -2049,7 +2452,7 @@
     </div>
     <div class="sidebar-footer" style="border-top:1px solid var(--line-soft);">
       <span class="user-email" id="userEmail" title=""></span>
-      <span id="footerVersion">v1.5</span>
+      <span id="footerVersion">v1.7</span>
     </div>
   </aside>
 
@@ -2120,51 +2523,68 @@
   </div>
 </div>
 
-<!-- ========= MODAL: NODE ========= -->
-<div class="modal-overlay" id="nodeModal">
+<!-- ========= MODAL: ROLE ========= -->
+<div class="modal-overlay" id="roleModal">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-eyebrow" id="nodeModalEyebrow">Nuova Persona</div>
-      <h3 class="modal-title">Aggiungi <em>al team</em></h3>
+      <div class="modal-eyebrow" id="roleModalEyebrow">Nuovo ruolo</div>
+      <h3 class="modal-title">Definisci <em>il ruolo</em></h3>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label class="field-label">Titolo del ruolo</label>
+        <input type="text" class="field-input" id="roleTitleInput" placeholder="es. Chief Operating Officer">
+      </div>
+      <div class="field">
+        <label class="field-label">Dipartimento (opzionale)</label>
+        <input type="text" class="field-input" id="roleDeptInput" placeholder="es. Operations">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" id="roleModalCancel">Annulla</button>
+      <button class="btn primary" id="roleModalSave">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========= MODAL: PERSON ========= -->
+<div class="modal-overlay" id="personModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-eyebrow" id="personModalEyebrow">Nuova persona</div>
+      <h3 class="modal-title">Aggiungi <em>al ruolo</em></h3>
     </div>
     <div class="modal-body">
       <div class="field">
         <label class="field-label">Foto (opzionale)</label>
         <div class="avatar-uploader">
-          <div class="avatar lg" id="nodeAvatarPreview"></div>
+          <div class="avatar lg" id="personAvatarPreview"></div>
           <div class="avatar-uploader-actions">
-            <button type="button" class="avatar-btn" id="nodeAvatarUploadBtn">
+            <button type="button" class="avatar-btn" id="personAvatarUploadBtn">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              <span id="nodeAvatarUploadLabel">Carica foto</span>
+              <span id="personAvatarUploadLabel">Carica foto</span>
             </button>
-            <button type="button" class="avatar-btn danger" id="nodeAvatarRemoveBtn" style="display:none">
+            <button type="button" class="avatar-btn danger" id="personAvatarRemoveBtn" style="display:none">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               Rimuovi
             </button>
           </div>
-          <input type="file" accept="image/*" class="avatar-hidden-input" id="nodeAvatarInput">
+          <input type="file" accept="image/*" class="avatar-hidden-input" id="personAvatarInput">
         </div>
       </div>
       <div class="field">
         <label class="field-label">Nome e cognome</label>
-        <input type="text" class="field-input" id="nodeNameInput" placeholder="es. Maria Rossi">
-      </div>
-      <div class="field">
-        <label class="field-label">Ruolo / Posizione</label>
-        <input type="text" class="field-input" id="nodeRoleInput" placeholder="es. Chief Operating Officer">
-      </div>
-      <div class="field">
-        <label class="field-label">Dipartimento (opzionale)</label>
-        <input type="text" class="field-input" id="nodeDeptInput" placeholder="es. Operations">
+        <input type="text" class="field-input" id="personNameInput" placeholder="es. Maria Rossi">
       </div>
       <div class="field">
         <label class="field-label">Business (opzionale, multipli)</label>
-        <div id="nodeBusinessPicker"></div>
+        <div id="personBusinessPicker"></div>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn" id="nodeModalCancel">Annulla</button>
-      <button class="btn primary" id="nodeModalSave">Salva</button>
+      <button class="btn delete-person-btn" id="personModalDelete" style="display:none;color:var(--rose);border-color:rgba(217,122,108,0.3);margin-right:auto;">Rimuovi dal ruolo</button>
+      <button class="btn" id="personModalCancel">Annulla</button>
+      <button class="btn primary" id="personModalSave">Salva</button>
     </div>
   </div>
 </div>
@@ -2175,10 +2595,62 @@
   <span id="toastText">Salvato</span>
 </div>
 
+<!-- ========= PROCEDURE EDITOR (full-screen) ========= -->
+<div class="procedure-overlay" id="procedureOverlay">
+  <div class="proc-topbar">
+    <div class="proc-breadcrumb">
+      <span class="proc-breadcrumb-context" id="procContextLabel"></span>
+      <input type="text" class="proc-title-input" id="procTitleInput" placeholder="Titolo della procedura…">
+    </div>
+    <div class="proc-actions">
+      <span class="proc-save-status" id="procSaveStatus"><span class="dot"></span><span id="procSaveText">salvato</span></span>
+      <button class="proc-close-btn" id="procCloseBtn" title="Chiudi (Esc)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        Chiudi
+      </button>
+    </div>
+  </div>
+  <div class="proc-toolbar" id="procToolbar">
+    <button class="proc-tool-btn" data-cmd="formatBlock" data-arg="H1" title="Titolo grande">H1</button>
+    <button class="proc-tool-btn" data-cmd="formatBlock" data-arg="H2" title="Titolo">H2</button>
+    <button class="proc-tool-btn" data-cmd="formatBlock" data-arg="H3" title="Sottotitolo">H3</button>
+    <button class="proc-tool-btn" data-cmd="formatBlock" data-arg="P" title="Paragrafo">¶</button>
+    <span class="proc-tool-sep"></span>
+    <button class="proc-tool-btn" data-cmd="bold" title="Grassetto (Cmd+B)"><strong>B</strong></button>
+    <button class="proc-tool-btn" data-cmd="italic" title="Corsivo (Cmd+I)"><em>I</em></button>
+    <button class="proc-tool-btn" data-cmd="formatBlock" data-arg="BLOCKQUOTE" title="Citazione">❝</button>
+    <span class="proc-tool-sep"></span>
+    <button class="proc-tool-btn" data-cmd="insertUnorderedList" title="Elenco puntato">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1.2" fill="currentColor"/><circle cx="4" cy="12" r="1.2" fill="currentColor"/><circle cx="4" cy="18" r="1.2" fill="currentColor"/></svg>
+    </button>
+    <button class="proc-tool-btn" data-cmd="insertOrderedList" title="Elenco numerato">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="10" y1="6" x2="20" y2="6"/><line x1="10" y1="12" x2="20" y2="12"/><line x1="10" y1="18" x2="20" y2="18"/><text x="2" y="8" font-size="7" fill="currentColor" stroke="none">1</text><text x="2" y="14" font-size="7" fill="currentColor" stroke="none">2</text><text x="2" y="20" font-size="7" fill="currentColor" stroke="none">3</text></svg>
+    </button>
+    <button class="proc-tool-btn" data-cmd="customChecklist" title="Checklist">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="6" height="6" rx="1"/><polyline points="4 6.5 5.5 8 8 5"/><rect x="3" y="14" width="6" height="6" rx="1"/><line x1="12" y1="7" x2="20" y2="7"/><line x1="12" y1="17" x2="20" y2="17"/></svg>
+    </button>
+    <span class="proc-tool-sep"></span>
+    <button class="proc-tool-btn" data-cmd="customLink" title="Inserisci link (Cmd+K)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.5 0l3-3a5 5 0 0 0-7-7l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.5 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></svg>
+    </button>
+    <button class="proc-tool-btn" data-cmd="customCode" title="Codice inline">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6" transform="translate(-4 0)"/><polyline points="9 18 15 12 9 6" transform="translate(4 0) scale(-1 1) translate(-24 0)"/></svg>
+    </button>
+    <button class="proc-tool-btn" data-cmd="removeFormat" title="Pulisci formattazione">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4h16v3"/><path d="M5 20l9-16"/><line x1="9" y1="20" x2="15" y2="20"/></svg>
+    </button>
+  </div>
+  <div class="proc-body-wrap">
+    <div class="proc-body" id="procBody" contenteditable="true" data-placeholder="Scrivi qui la procedura passo per passo. Usa H1/H2 per i titoli, le checklist per i task, le citazioni per le note importanti."></div>
+  </div>
+</div>
+
 <script>
 /* ======================================================================
-   ATLAS ORG STUDIO — v1.5
-   Dual view: Vista Aziendale (org tree) + Vista Business (line lanes)
+   ATLAS ORG STUDIO — v1.7
+   - Role-centric tree (roles + procedures, persons fill roles)
+   - Full-screen toggle (hides sidebar)
+   - Notion-like full-screen procedure editor per activity
    ====================================================================== */
 
 // ---------- Supabase config ----------
@@ -2214,12 +2686,13 @@ let state = {
   businesses: [],       // legacy name; semantically these are AZIENDE (companies)
   activeBizId: null,
   activeView: 'tree',   // 'tree' (Vista Aziendale) | 'lanes' (Vista Business) | 'dashboard'
+  fullscreen: false,    // hides the sidebar; toggled via topbar button or keyboard
 };
 
 let editingBizId = null;
-let editingNodeContext = null; // { bizId, parentId, nodeId? }
-let tempNodePhoto = null;      // pending photo dataURL while node modal is open
-let tempNodeBusinessIds = [];  // pending businessIds[] while node modal is open
+// editingRoleCtx + editingPersonCtx are declared near their modal functions.
+let tempNodePhoto = null;       // pending photo dataURL (shared by personModal)
+let tempNodeBusinessIds = [];   // pending businessIds[] (shared by personModal)
 let editingBusinessLine = null; // { bizId, lineId? } for the business-line manage modal
 
 // Dashboard filters (ephemeral, not persisted)
@@ -2295,8 +2768,13 @@ async function loadState() {
 function migrateState() {
   // v1.0 → v1.1: Migrate from cosa/come/quando arrays → activities array
   // v1.5: Add businessIds[] to persons, ensure each azienda has businesses[]
+  // v1.6: Role-centric model — node is now a ROLE with persons[] array.
+  //       Old node fields { name, role, photo, businessIds } are migrated
+  //       into a single Person object inside persons[].
   const migrateNode = (node) => {
     if (!node) return;
+
+    // --- activities migration (legacy v1.0) ---
     if (!Array.isArray(node.activities)) {
       const activities = [];
       const cosa = Array.isArray(node.cosa) ? node.cosa : [];
@@ -2317,21 +2795,41 @@ function migrateState() {
       delete node.come;
       delete node.quando;
     }
-    if (!Array.isArray(node.businessIds)) node.businessIds = [];
+
+    // --- role/person migration (v1.6) ---
+    if (!Array.isArray(node.persons)) {
+      // Old node held a single person directly. Move it inside persons[].
+      const hadPerson = !!node.name;
+      node.persons = hadPerson ? [{
+        id: uid(),
+        name: node.name,
+        photo: node.photo || null,
+        businessIds: Array.isArray(node.businessIds) ? [...node.businessIds] : []
+      }] : [];
+      // node.role was the role title; promote to node.title.
+      if (!node.title) node.title = node.role || (hadPerson ? '' : (node.title || ''));
+      delete node.name;
+      delete node.role;
+      delete node.photo;
+      delete node.businessIds;
+    }
+    // Defensive: ensure title exists
+    if (typeof node.title !== 'string') node.title = '';
+
     if (Array.isArray(node.children)) node.children.forEach(migrateNode);
   };
 
   // `state.businesses` is the legacy name; semantically these are AZIENDE.
-  // We don't rename the variable to avoid a big refactor — it stays internal.
   state.businesses.forEach(biz => {
     if (!Array.isArray(biz.businesses)) biz.businesses = [];  // business lines within this azienda
     if (biz.tree) migrateNode(biz.tree);
   });
 
   // v1.1 → v1.5: activeView migration
-  // Old values: 'business' (org tree) | 'dashboard'
-  // New values: 'tree' (Vista Aziendale) | 'lanes' (Vista Business) | 'dashboard'
   if (!state.activeView || state.activeView === 'business') state.activeView = 'tree';
+
+  // v1.7: fullscreen flag default
+  if (typeof state.fullscreen !== 'boolean') state.fullscreen = false;
 }
 
 function setSaveStatus(status) {
@@ -2352,55 +2850,81 @@ function setSaveStatus(status) {
 function seedExample() {
   const b1Id = uid();
   const b2Id = uid();
+  // Bigoodino-style seed: 1 azienda with 2 business lines (BeautyBox, B2B),
+  // role-centric tree, roles staffed with multiple persons.
+  const beautyId = uid();
+  const b2bId = uid();
   state.businesses = [
     {
       id: b1Id,
       name: 'Acme Holding',
       tag: 'Holding · Strategia',
       colorIdx: 0,
+      businesses: [
+        { id: beautyId, name: 'BeautyBox',       colorIdx: 1 },  // rose
+        { id: b2bId,    name: 'B2B Partnerships', colorIdx: 4 },  // plum
+      ],
       tree: {
         id: uid(),
-        name: 'Elena Conti',
-        role: 'CEO & Founder',
+        title: 'CEO & Founder',
         dept: 'Direzione',
+        persons: [{ id: uid(), name: 'Elena Conti', photo: null, businessIds: [beautyId, b2bId] }],
         activities: [
           { id: uid(), cosa: 'Definire la strategia aziendale', come: 'Workshop annuale + analisi di mercato', date: '2026-09-30', recur: 'yearly' },
-          { id: uid(), cosa: 'Approvare budget annuale', come: 'Riunione CdA con CFO', date: '2026-12-15', recur: 'yearly' },
-          { id: uid(), cosa: 'Board meeting', come: 'Presentazione KPI trimestrali', date: '2026-06-15', recur: 'quarterly' },
+          { id: uid(), cosa: 'Approvare budget annuale',        come: 'Riunione CdA con CFO',                  date: '2026-12-15', recur: 'yearly' },
+          { id: uid(), cosa: 'Board meeting',                   come: 'Presentazione KPI trimestrali',         date: '2026-06-15', recur: 'quarterly' },
         ],
         children: [
           {
             id: uid(),
-            name: 'Marco Bianchi',
-            role: 'COO',
+            title: 'COO',
             dept: 'Operations',
+            persons: [
+              { id: uid(), name: 'Marco Bianchi', photo: null, businessIds: [beautyId, b2bId] }
+            ],
             activities: [
               { id: uid(), cosa: 'Stand-up operativo', come: 'Call team operations 30min', date: '2026-05-11', recur: 'weekly' },
-              { id: uid(), cosa: 'Audit operativo', come: 'Visita stabilimenti + report', date: '2026-05-20', recur: 'none' },
+              { id: uid(), cosa: 'Audit operativo',    come: 'Visita stabilimenti + report', date: '2026-05-20', recur: 'none' },
             ],
             children: [
-              { id: uid(), name: 'Sara Romano', role: 'Head of Operations', dept: 'Operations', activities: [], children: [] },
-              { id: uid(), name: 'Luca Marchetti', role: 'Logistics Manager', dept: 'Supply Chain', activities: [], children: [] },
+              {
+                id: uid(),
+                title: 'Head of Operations',
+                dept: 'Operations',
+                persons: [
+                  { id: uid(), name: 'Sara Romano',  photo: null, businessIds: [beautyId] },
+                  { id: uid(), name: 'Luca Marchetti', photo: null, businessIds: [b2bId] },
+                ],
+                activities: [], children: []
+              },
             ]
           },
           {
             id: uid(),
-            name: 'Giulia Esposito',
-            role: 'CFO',
+            title: 'CFO',
             dept: 'Finance',
+            persons: [{ id: uid(), name: 'Giulia Esposito', photo: null, businessIds: [beautyId, b2bId] }],
             activities: [
-              { id: uid(), cosa: 'Reporting finanziario', come: 'SAP Finance + slide CdA', date: '2026-05-31', recur: 'monthly' },
-              { id: uid(), cosa: 'Chiusura bilancio', come: 'Coordinamento revisore + audit', date: '2026-12-31', recur: 'yearly' },
+              { id: uid(), cosa: 'Reporting finanziario', come: 'SAP Finance + slide CdA',            date: '2026-05-31', recur: 'monthly' },
+              { id: uid(), cosa: 'Chiusura bilancio',     come: 'Coordinamento revisore + audit',     date: '2026-12-31', recur: 'yearly' },
             ],
             children: [
-              { id: uid(), name: 'Davide Greco', role: 'Controller', dept: 'Finance', activities: [], children: [] }
+              {
+                id: uid(),
+                title: 'Controller',
+                dept: 'Finance',
+                persons: [{ id: uid(), name: 'Davide Greco', photo: null, businessIds: [beautyId] }],
+                activities: [], children: []
+              }
             ]
           },
           {
             id: uid(),
-            name: 'Roberto Ferrari',
-            role: 'CTO',
+            title: 'CTO',
             dept: 'Technology',
+            persons: [
+              { id: uid(), name: 'Roberto Ferrari', photo: null, businessIds: [beautyId, b2bId] }
+            ],
             activities: [],
             children: []
           },
@@ -2412,17 +2936,30 @@ function seedExample() {
       name: 'Vega Studio',
       tag: 'Design · Creative',
       colorIdx: 3,
+      businesses: [],
       tree: {
         id: uid(),
-        name: 'Chiara Russo',
-        role: 'Creative Director',
+        title: 'Creative Director',
         dept: 'Studio',
+        persons: [{ id: uid(), name: 'Chiara Russo', photo: null, businessIds: [] }],
         activities: [
           { id: uid(), cosa: 'Critique session', come: 'Review Figma con il team', date: '2026-05-13', recur: 'weekly' },
         ],
         children: [
-          { id: uid(), name: 'Tommaso Lombardi', role: 'Design Lead', dept: 'Visual', activities: [], children: [] },
-          { id: uid(), name: 'Alice Moretti', role: 'Strategy Lead', dept: 'Strategy', activities: [], children: [] },
+          {
+            id: uid(),
+            title: 'Design Lead',
+            dept: 'Visual',
+            persons: [{ id: uid(), name: 'Tommaso Lombardi', photo: null, businessIds: [] }],
+            activities: [], children: []
+          },
+          {
+            id: uid(),
+            title: 'Strategy Lead',
+            dept: 'Strategy',
+            persons: [{ id: uid(), name: 'Alice Moretti', photo: null, businessIds: [] }],
+            activities: [], children: []
+          },
         ]
       }
     }
@@ -2605,6 +3142,7 @@ function renderTopbar() {
     </div>
   `;
 
+  const isFs = state.fullscreen;
   actionsEl.innerHTML = `
     ${toggleHtml}
     ${!biz.tree ? `
@@ -2617,11 +3155,17 @@ function renderTopbar() {
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       Esporta
     </button>
+    <button class="fullscreen-toggle" id="fullscreenBtn" title="${isFs ? 'Comprimi (Esc)' : 'A tutto schermo'}">
+      ${isFs ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>`
+        : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/></svg>`}
+    </button>
   `;
 
   document.getElementById('exportJsonBtn').addEventListener('click', exportJson);
   const addRoot = document.getElementById('addRootBtn');
-  if (addRoot) addRoot.addEventListener('click', () => openNodeModal({ bizId: biz.id, parentId: null, isRoot: true }));
+  if (addRoot) addRoot.addEventListener('click', () => openRoleModal({ bizId: biz.id, parentId: null, isRoot: true }));
+
+  document.getElementById('fullscreenBtn').addEventListener('click', toggleFullscreen);
 
   // View toggle
   actionsEl.querySelectorAll('.view-toggle-btn').forEach(btn => {
@@ -2679,7 +3223,7 @@ function renderCanvas() {
         </svg>
         <h2 class="empty-title">Costruisci <em>il vertice</em></h2>
         <p class="empty-text">Inizia aggiungendo la persona al vertice della struttura per <strong>${escapeHtml(biz.name)}</strong>.</p>
-        <button class="btn primary" onclick="openNodeModal({ bizId: '${biz.id}', parentId: null, isRoot: true })">
+        <button class="btn primary" onclick="openRoleModal({ bizId: '${biz.id}', parentId: null, isRoot: true })">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Aggiungi vertice
         </button>
@@ -2726,9 +3270,18 @@ function renderExpansion(node, biz) {
 }
 
 function renderActivityRow(act, biz) {
+  const hasProc = !!(act.procedure && String(act.procedure).trim() && String(act.procedure).trim() !== '<br>');
   return `
     <div class="activity-row" data-activity-id="${act.id}">
-      <div class="activity-cell cell-cosa" data-field="cosa" tabindex="0">${escapeHtml(act.cosa || '')}</div>
+      <div class="activity-cell cell-cosa" data-field="cosa" tabindex="0">
+        <span class="cell-cosa-text">${escapeHtml(act.cosa || '')}</span>
+        <button class="activity-procedure-btn ${hasProc ? 'has-content' : ''}" data-act="open-procedure" title="${hasProc ? 'Apri procedura' : 'Scrivi una procedura'}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 3v5h5"/><path d="M19 8v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5z"/>
+            <line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/>
+          </svg>
+        </button>
+      </div>
       <div class="activity-cell cell-come" data-field="come" tabindex="0">${escapeHtml(act.come || '')}</div>
       <div class="cell-quando">${renderQuandoCell(act, biz)}</div>
       <button class="activity-remove" data-act="remove-activity" title="Elimina attività">
@@ -2808,8 +3361,21 @@ function wireExpansion(card, biz, node) {
 
     // Inline edit cosa & come
     row.querySelectorAll('.activity-cell[data-field="cosa"], .activity-cell[data-field="come"]').forEach(cell => {
-      cell.addEventListener('click', () => startInlineEdit(cell, biz.id, node.id, activityId, cell.dataset.field));
+      cell.addEventListener('click', (e) => {
+        // Ignore clicks on the procedure button — that opens the editor instead
+        if (e.target.closest('[data-act="open-procedure"]')) return;
+        startInlineEdit(cell, biz.id, node.id, activityId, cell.dataset.field);
+      });
     });
+
+    // Procedure button → open full-screen editor
+    const procBtn = row.querySelector('[data-act="open-procedure"]');
+    if (procBtn) {
+      procBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openProcedureEditor(biz.id, node.id, activityId);
+      });
+    }
 
     // Date click → open date input
     row.querySelector('.quando-date').addEventListener('click', () => {
@@ -2983,6 +3549,222 @@ function refreshAfterActivityEdit(bizId, nodeId) {
   }
 }
 
+/* ======================================================================
+   PROCEDURE EDITOR — full-screen, Notion-like, per-activity rich text.
+   Stored as HTML string in activity.procedure. Auto-saves on each change.
+   ====================================================================== */
+
+let procEditorCtx = null;     // { bizId, roleId, activityId }
+let procSaveTimer = null;
+
+function openProcedureEditor(bizId, roleId, activityId) {
+  const biz = state.businesses.find(b => b.id === bizId);
+  if (!biz) return;
+  const role = findNode(biz.tree, roleId);
+  if (!role) return;
+  const act = (role.activities || []).find(a => a.id === activityId);
+  if (!act) return;
+
+  procEditorCtx = { bizId, roleId, activityId };
+
+  const overlay = document.getElementById('procedureOverlay');
+  const contextEl = document.getElementById('procContextLabel');
+  const titleInput = document.getElementById('procTitleInput');
+  const body = document.getElementById('procBody');
+  const saveStatus = document.getElementById('procSaveStatus');
+  const saveText = document.getElementById('procSaveText');
+
+  // Breadcrumb: Azienda · Ruolo
+  const persons = (role.persons || []).map(p => p.name).filter(Boolean).join(', ');
+  contextEl.innerHTML = `<strong>${escapeHtml(biz.name)}</strong> · ${escapeHtml(role.title || '—')}${persons ? ' · ' + escapeHtml(persons) : ''}`;
+
+  titleInput.value = act.cosa || '';
+  body.innerHTML = act.procedure || '';
+
+  saveStatus.classList.remove('saving');
+  saveText.textContent = act.procedure ? 'salvato' : 'pronto';
+
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  setTimeout(() => {
+    if (!act.procedure) body.focus(); else titleInput.focus();
+  }, 50);
+
+  // Re-apply listeners so we don't accumulate them
+  setupProcedureEditorListeners();
+}
+
+function closeProcedureEditor() {
+  // Flush any pending save synchronously
+  if (procSaveTimer) {
+    clearTimeout(procSaveTimer);
+    procSaveTimer = null;
+    flushProcedureSave();
+  }
+  document.getElementById('procedureOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  procEditorCtx = null;
+}
+
+function flushProcedureSave() {
+  if (!procEditorCtx) return;
+  const { bizId, roleId, activityId } = procEditorCtx;
+  const biz = state.businesses.find(b => b.id === bizId);
+  if (!biz) return;
+  const role = findNode(biz.tree, roleId);
+  if (!role) return;
+  const act = (role.activities || []).find(a => a.id === activityId);
+  if (!act) return;
+
+  const newCosa = document.getElementById('procTitleInput').value.trim();
+  const newProc = document.getElementById('procBody').innerHTML.trim();
+
+  act.cosa = newCosa;
+  act.procedure = (newProc && newProc !== '<br>') ? newProc : '';
+
+  persist();
+  document.getElementById('procSaveText').textContent = 'salvato';
+  document.getElementById('procSaveStatus').classList.remove('saving');
+}
+
+function scheduleProcedureSave() {
+  document.getElementById('procSaveText').textContent = 'salvataggio…';
+  document.getElementById('procSaveStatus').classList.add('saving');
+  clearTimeout(procSaveTimer);
+  procSaveTimer = setTimeout(() => {
+    procSaveTimer = null;
+    flushProcedureSave();
+  }, 600);
+}
+
+function setupProcedureEditorListeners() {
+  const overlay = document.getElementById('procedureOverlay');
+  const titleInput = document.getElementById('procTitleInput');
+  const body = document.getElementById('procBody');
+  const closeBtn = document.getElementById('procCloseBtn');
+  const toolbar = document.getElementById('procToolbar');
+
+  if (overlay.dataset.wired) return; // bind only once
+  overlay.dataset.wired = '1';
+
+  closeBtn.addEventListener('click', () => {
+    closeProcedureEditor();
+    // Refresh the role card so the procedure indicator (filled icon) updates
+    if (procEditorCtx === null) {
+      // already cleared; trigger a render to refresh activity rows
+      render();
+    }
+  });
+
+  titleInput.addEventListener('input', scheduleProcedureSave);
+  body.addEventListener('input', scheduleProcedureSave);
+
+  // Toolbar buttons → execCommand or custom
+  toolbar.querySelectorAll('.proc-tool-btn').forEach(btn => {
+    btn.addEventListener('mousedown', (e) => {
+      // Prevent stealing focus from the editor
+      e.preventDefault();
+    });
+    btn.addEventListener('click', (e) => {
+      const cmd = btn.dataset.cmd;
+      const arg = btn.dataset.arg || null;
+      body.focus();
+      runProcedureCommand(cmd, arg);
+      updateToolbarState();
+      scheduleProcedureSave();
+    });
+  });
+
+  // Update toolbar active state on selection changes
+  body.addEventListener('keyup', updateToolbarState);
+  body.addEventListener('mouseup', updateToolbarState);
+
+  // Esc to close, Cmd+K for link
+  document.addEventListener('keydown', (e) => {
+    if (!overlay.classList.contains('open')) return;
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      closeProcedureEditor();
+      render();
+      return;
+    }
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      runProcedureCommand('customLink');
+      scheduleProcedureSave();
+    }
+  });
+
+  // Click-to-toggle on checklist items
+  body.addEventListener('click', (e) => {
+    const li = e.target.closest('ul[data-type="checklist"] > li');
+    if (!li) return;
+    // Toggle only if user clicked on the ::before checkbox area (left ~28px)
+    const rect = li.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    if (x > 24) return;
+    li.classList.toggle('checked');
+    scheduleProcedureSave();
+  });
+}
+
+function runProcedureCommand(cmd, arg) {
+  if (cmd === 'customLink') {
+    const url = prompt('URL del link:');
+    if (!url) return;
+    document.execCommand('createLink', false, url);
+    return;
+  }
+  if (cmd === 'customCode') {
+    // Wrap selection in <code>
+    const sel = window.getSelection();
+    if (!sel.rangeCount) return;
+    const range = sel.getRangeAt(0);
+    if (range.collapsed) return;
+    const code = document.createElement('code');
+    code.appendChild(range.extractContents());
+    range.insertNode(code);
+    sel.removeAllRanges();
+    return;
+  }
+  if (cmd === 'customChecklist') {
+    // Convert current line into a checklist item, or toggle off
+    document.execCommand('insertUnorderedList');
+    // Find the resulting UL and tag it as checklist
+    const sel = window.getSelection();
+    if (sel.rangeCount) {
+      let node = sel.getRangeAt(0).startContainer;
+      while (node && node.nodeName !== 'UL') node = node.parentNode;
+      if (node) node.setAttribute('data-type', 'checklist');
+    }
+    return;
+  }
+  if (cmd === 'formatBlock') {
+    document.execCommand('formatBlock', false, arg);
+    return;
+  }
+  document.execCommand(cmd, false, arg);
+}
+
+function updateToolbarState() {
+  const toolbar = document.getElementById('procToolbar');
+  if (!toolbar) return;
+  toolbar.querySelectorAll('.proc-tool-btn').forEach(btn => {
+    const cmd = btn.dataset.cmd;
+    let active = false;
+    try {
+      if (cmd === 'bold' || cmd === 'italic' || cmd === 'insertUnorderedList' || cmd === 'insertOrderedList') {
+        active = document.queryCommandState(cmd);
+      } else if (cmd === 'formatBlock') {
+        const block = (document.queryCommandValue('formatBlock') || '').toUpperCase();
+        active = block === btn.dataset.arg;
+      }
+    } catch (e) {}
+    btn.classList.toggle('active', !!active);
+  });
+}
+
 function reRenderCardKeepExpanded(bizId, nodeId) {
   // Track which nodes are expanded so we can restore after re-render
   const expandedIds = new Set();
@@ -3013,34 +3795,32 @@ function renderTreeNode(node, biz, isRoot = false) {
   card.draggable = !isRoot; // root non draggabile (è il vertice)
   card.style.setProperty('--biz-color', palette.color);
 
+  const persons = Array.isArray(node.persons) ? node.persons : [];
+
   card.innerHTML = `
     <div class="drop-hint">Sposta sotto</div>
     <div class="card-color-bar"></div>
     <div class="card-body">
-      <div class="card-header-row">
-        ${renderAvatar(node, palette)}
-        <div class="card-text">
-          <div class="card-role">${escapeHtml(node.dept || node.role || '')}</div>
-          <div class="card-name">${escapeHtml(node.name || '—')}</div>
-          <div class="card-title">${escapeHtml(node.role || '')}</div>
-          ${renderBusinessChipsForNode(node, biz)}
-        </div>
+      <div class="card-text">
+        <div class="card-role">${escapeHtml(node.dept || '')}</div>
+        <div class="card-name">${escapeHtml(node.title || '—')}</div>
       </div>
+      ${renderPersonsStrip(node, biz)}
       <div class="card-footer">
         <div class="card-id">${isRoot ? '◆ VERTICE' : '#' + node.id.slice(0, 4).toUpperCase()}</div>
         <div class="card-actions">
-          <button class="card-icon-btn add" data-act="add" title="Aggiungi sotto">
+          <button class="card-icon-btn add" data-act="add" title="Aggiungi ruolo sotto">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>
-          <button class="card-icon-btn" data-act="edit" title="Modifica anagrafica">
+          <button class="card-icon-btn" data-act="edit" title="Modifica ruolo">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           </button>
           ${!isRoot ? `
-          <button class="card-icon-btn danger" data-act="delete" title="Elimina">
+          <button class="card-icon-btn danger" data-act="delete" title="Elimina ruolo">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
           </button>
           ` : ''}
-          <button class="card-icon-btn toggle-expand" data-act="toggle" title="Procedura: cosa, come, quando">
+          <button class="card-icon-btn toggle-expand" data-act="toggle" title="Procedure del ruolo: cosa, come, quando">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
         </div>
@@ -3049,21 +3829,35 @@ function renderTreeNode(node, biz, isRoot = false) {
     ${renderExpansion(node, biz)}
   `;
 
-  // Card actions
+  // Card actions (footer buttons)
   card.querySelectorAll('.card-footer [data-act]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const act = btn.dataset.act;
-      if (act === 'add') openNodeModal({ bizId: biz.id, parentId: node.id });
-      else if (act === 'edit') openNodeModal({ bizId: biz.id, nodeId: node.id });
-      else if (act === 'delete') deleteNode(biz.id, node.id);
+      if (act === 'add') openRoleModal({ bizId: biz.id, parentId: node.id });
+      else if (act === 'edit') openRoleModal({ bizId: biz.id, nodeId: node.id });
+      else if (act === 'delete') deleteRole(biz.id, node.id);
       else if (act === 'toggle') {
         card.classList.toggle('expanded');
-        // Disable drag while expanded to avoid interfering with input editing
         card.draggable = !isRoot && !card.classList.contains('expanded');
       }
     });
   });
+
+  // Persons strip: click a pill → edit person; click +button → add person
+  card.querySelectorAll('.persons-strip [data-person-id]').forEach(pill => {
+    pill.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openPersonModal({ bizId: biz.id, roleId: node.id, personId: pill.dataset.personId });
+    });
+  });
+  const addPersonBtn = card.querySelector('.persons-strip [data-act="add-person"]');
+  if (addPersonBtn) {
+    addPersonBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openPersonModal({ bizId: biz.id, roleId: node.id });
+    });
+  }
 
   // Wire the expansion section
   wireExpansion(card, biz, node);
@@ -3279,47 +4073,196 @@ function deleteBusiness(bizId) {
   showToast('Azienda eliminata');
 }
 
-function openNodeModal(ctx) {
-  editingNodeContext = ctx;
-  const modal = document.getElementById('nodeModal');
-  const eyebrow = document.getElementById('nodeModalEyebrow');
-  const nameInput = document.getElementById('nodeNameInput');
-  const roleInput = document.getElementById('nodeRoleInput');
-  const deptInput = document.getElementById('nodeDeptInput');
+/* ======================================================================
+   ROLE modal — creates/edits a node in the org tree (a Role).
+   A role has: title, dept, activities, children, persons[].
+   ====================================================================== */
+
+let editingRoleCtx = null;   // { bizId, parentId?, nodeId?, isRoot? }
+
+function openRoleModal(ctx) {
+  editingRoleCtx = ctx;
+  const modal = document.getElementById('roleModal');
+  const eyebrow = document.getElementById('roleModalEyebrow');
+  const titleInput = document.getElementById('roleTitleInput');
+  const deptInput  = document.getElementById('roleDeptInput');
 
   if (ctx.nodeId) {
     const biz = state.businesses.find(b => b.id === ctx.bizId);
     const node = findNode(biz.tree, ctx.nodeId);
-    nameInput.value = node.name || '';
-    roleInput.value = node.role || '';
+    titleInput.value = node.title || '';
     deptInput.value = node.dept || '';
-    tempNodePhoto = node.photo || null;
-    tempNodeBusinessIds = Array.isArray(node.businessIds) ? [...node.businessIds] : [];
+    eyebrow.textContent = 'Modifica ruolo';
+  } else {
+    titleInput.value = '';
+    deptInput.value = '';
+    eyebrow.textContent = ctx.isRoot ? 'Nuovo vertice' : 'Aggiungi ruolo sotto';
+  }
+  modal.classList.add('open');
+  setTimeout(() => titleInput.focus(), 50);
+}
+
+function closeRoleModal() {
+  document.getElementById('roleModal').classList.remove('open');
+  editingRoleCtx = null;
+}
+
+function saveRole() {
+  if (!editingRoleCtx) return;
+  const ctx = editingRoleCtx;
+  const title = document.getElementById('roleTitleInput').value.trim();
+  const dept  = document.getElementById('roleDeptInput').value.trim();
+
+  if (!title) { document.getElementById('roleTitleInput').focus(); return; }
+
+  const biz = state.businesses.find(b => b.id === ctx.bizId);
+  if (!biz) return;
+
+  if (ctx.nodeId) {
+    const node = findNode(biz.tree, ctx.nodeId);
+    node.title = title;
+    node.dept = dept;
+    showToast('Ruolo aggiornato');
+  } else if (ctx.isRoot) {
+    biz.tree = { id: uid(), title, dept, persons: [], activities: [], children: [] };
+    showToast('Vertice creato');
+  } else {
+    const parent = findNode(biz.tree, ctx.parentId);
+    if (!parent.children) parent.children = [];
+    parent.children.push({ id: uid(), title, dept, persons: [], activities: [], children: [] });
+    showToast('Ruolo aggiunto');
+  }
+
+  closeRoleModal();
+  persist();
+  render();
+}
+
+function deleteRole(bizId, nodeId) {
+  const biz = state.businesses.find(b => b.id === bizId);
+  if (!biz || !biz.tree) return;
+  const node = findNode(biz.tree, nodeId);
+  if (!node) return;
+  const childCount = countChildren(node);
+  const personCount = (node.persons || []).length;
+  const pieces = [];
+  if (personCount > 0) pieces.push(`${personCount} ${personCount === 1 ? 'persona assegnata' : 'persone assegnate'}`);
+  if (childCount > 0) pieces.push(`${childCount} ${childCount === 1 ? 'ruolo sotto' : 'ruoli sotto'}`);
+  const extras = pieces.length ? ' (e ' + pieces.join(' + ') + ')' : '';
+  const msg = `Eliminare il ruolo "${node.title}"${extras}?`;
+  if (!confirm(msg)) return;
+
+  const parent = findParent(biz.tree, nodeId);
+  if (parent) {
+    parent.children = parent.children.filter(c => c.id !== nodeId);
+  }
+  persist();
+  render();
+  showToast('Ruolo eliminato');
+}
+
+/* ======================================================================
+   PERSON modal — manages a single Person inside a Role.
+   ====================================================================== */
+
+let editingPersonCtx = null;  // { bizId, roleId, personId? }
+
+function openPersonModal(ctx) {
+  editingPersonCtx = ctx;
+  const modal = document.getElementById('personModal');
+  const eyebrow = document.getElementById('personModalEyebrow');
+  const nameInput = document.getElementById('personNameInput');
+  const deleteBtn = document.getElementById('personModalDelete');
+
+  if (ctx.personId) {
+    const biz = state.businesses.find(b => b.id === ctx.bizId);
+    const role = findNode(biz.tree, ctx.roleId);
+    const person = (role.persons || []).find(p => p.id === ctx.personId);
+    if (!person) return;
+    nameInput.value = person.name || '';
+    tempNodePhoto = person.photo || null;
+    tempNodeBusinessIds = Array.isArray(person.businessIds) ? [...person.businessIds] : [];
     eyebrow.textContent = 'Modifica persona';
+    deleteBtn.style.display = '';
   } else {
     nameInput.value = '';
-    roleInput.value = '';
-    deptInput.value = '';
     tempNodePhoto = null;
     tempNodeBusinessIds = [];
-    eyebrow.textContent = ctx.isRoot ? 'Nuovo vertice' : 'Aggiungi sotto';
+    eyebrow.textContent = 'Aggiungi persona al ruolo';
+    deleteBtn.style.display = 'none';
   }
 
   setupAvatarUploader();
   updateNodeAvatarPreview();
   renderNodeBusinessPicker();
 
-  // Refresh initials live as the user types
   nameInput.oninput = updateNodeAvatarPreview;
 
   modal.classList.add('open');
   setTimeout(() => nameInput.focus(), 50);
 }
 
+function closePersonModal() {
+  document.getElementById('personModal').classList.remove('open');
+  editingPersonCtx = null;
+  tempNodePhoto = null;
+  tempNodeBusinessIds = [];
+}
+
+function savePerson() {
+  if (!editingPersonCtx) return;
+  const ctx = editingPersonCtx;
+  const name = document.getElementById('personNameInput').value.trim();
+  if (!name) { document.getElementById('personNameInput').focus(); return; }
+
+  const biz = state.businesses.find(b => b.id === ctx.bizId);
+  if (!biz) return;
+  const role = findNode(biz.tree, ctx.roleId);
+  if (!role) return;
+  if (!Array.isArray(role.persons)) role.persons = [];
+
+  const photo = tempNodePhoto || null;
+  const businessIds = [...tempNodeBusinessIds];
+
+  if (ctx.personId) {
+    const person = role.persons.find(p => p.id === ctx.personId);
+    if (person) {
+      person.name = name;
+      person.photo = photo;
+      person.businessIds = businessIds;
+      showToast('Persona aggiornata');
+    }
+  } else {
+    role.persons.push({ id: uid(), name, photo, businessIds });
+    showToast('Persona aggiunta');
+  }
+
+  closePersonModal();
+  persist();
+  render();
+}
+
+function deletePerson(bizId, roleId, personId) {
+  const biz = state.businesses.find(b => b.id === bizId);
+  if (!biz || !biz.tree) return;
+  const role = findNode(biz.tree, roleId);
+  if (!role || !Array.isArray(role.persons)) return;
+  const person = role.persons.find(p => p.id === personId);
+  if (!person) return;
+  if (!confirm(`Rimuovere "${person.name}" dal ruolo "${role.title}"?`)) return;
+  role.persons = role.persons.filter(p => p.id !== personId);
+  closePersonModal();
+  persist();
+  render();
+  showToast('Persona rimossa');
+}
+
+/* ----------- avatar uploader + business picker (used by personModal) ----------- */
+
 function renderNodeBusinessPicker() {
-  const container = document.getElementById('nodeBusinessPicker');
+  const container = document.getElementById('personBusinessPicker');
   if (!container) return;
-  const ctx = editingNodeContext;
+  const ctx = editingPersonCtx;
   const azienda = ctx && state.businesses.find(b => b.id === ctx.bizId);
   const lines = azienda && Array.isArray(azienda.businesses) ? azienda.businesses : [];
 
@@ -3332,10 +4275,9 @@ function renderNodeBusinessPicker() {
     const link = document.getElementById('quickAddBizLineLink');
     if (link) {
       link.addEventListener('click', () => {
-        // We can't open another modal on top reliably — close this one,
-        // open the business-line modal, then leave the user to re-edit the person.
-        closeNodeModal();
-        openBusinessLineModal({ bizId: ctx.bizId });
+        const bizId = ctx.bizId;
+        closePersonModal();
+        openBusinessLineModal({ bizId });
       });
     }
     return;
@@ -3360,11 +4302,11 @@ function renderNodeBusinessPicker() {
 }
 
 function updateNodeAvatarPreview() {
-  const preview = document.getElementById('nodeAvatarPreview');
-  const removeBtn = document.getElementById('nodeAvatarRemoveBtn');
-  const uploadLabel = document.getElementById('nodeAvatarUploadLabel');
+  const preview = document.getElementById('personAvatarPreview');
+  const removeBtn = document.getElementById('personAvatarRemoveBtn');
+  const uploadLabel = document.getElementById('personAvatarUploadLabel');
   if (!preview) return;
-  const name = document.getElementById('nodeNameInput').value || '';
+  const name = document.getElementById('personNameInput').value || '';
   if (tempNodePhoto) {
     const safeUrl = String(tempNodePhoto).replace(/'/g, '%27');
     preview.style.backgroundImage = `url('${safeUrl}')`;
@@ -3380,9 +4322,9 @@ function updateNodeAvatarPreview() {
 }
 
 function setupAvatarUploader() {
-  const input = document.getElementById('nodeAvatarInput');
-  const uploadBtn = document.getElementById('nodeAvatarUploadBtn');
-  const removeBtn = document.getElementById('nodeAvatarRemoveBtn');
+  const input = document.getElementById('personAvatarInput');
+  const uploadBtn = document.getElementById('personAvatarUploadBtn');
+  const removeBtn = document.getElementById('personAvatarRemoveBtn');
   if (!input || !uploadBtn || !removeBtn) return;
 
   uploadBtn.onclick = (e) => {
@@ -3393,7 +4335,6 @@ function setupAvatarUploader() {
   input.onchange = async (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
-    // Soft limit: avoid 20MB+ phone shots making the page hang on decode
     if (file.size > 12 * 1024 * 1024) {
       showToast('Foto troppo grande (max 12MB)');
       input.value = '';
@@ -3417,77 +4358,6 @@ function setupAvatarUploader() {
     tempNodePhoto = null;
     updateNodeAvatarPreview();
   };
-}
-
-function closeNodeModal() {
-  document.getElementById('nodeModal').classList.remove('open');
-  editingNodeContext = null;
-  tempNodePhoto = null;
-  tempNodeBusinessIds = [];
-}
-
-function saveNode() {
-  const name = document.getElementById('nodeNameInput').value.trim();
-  const role = document.getElementById('nodeRoleInput').value.trim();
-  const dept = document.getElementById('nodeDeptInput').value.trim();
-
-  if (!name) {
-    document.getElementById('nodeNameInput').focus();
-    return;
-  }
-
-  const ctx = editingNodeContext;
-  const biz = state.businesses.find(b => b.id === ctx.bizId);
-  if (!biz) return;
-
-  const photo = tempNodePhoto || null;
-  const businessIds = [...tempNodeBusinessIds];
-
-  if (ctx.nodeId) {
-    // EDIT
-    const node = findNode(biz.tree, ctx.nodeId);
-    node.name = name;
-    node.role = role;
-    node.dept = dept;
-    node.photo = photo;
-    node.businessIds = businessIds;
-    showToast('Persona aggiornata');
-  } else if (ctx.isRoot) {
-    // CREATE ROOT
-    biz.tree = { id: uid(), name, role, dept, photo, businessIds, activities: [], children: [] };
-    showToast('Vertice creato');
-  } else {
-    // ADD CHILD
-    const parent = findNode(biz.tree, ctx.parentId);
-    if (!parent.children) parent.children = [];
-    parent.children.push({ id: uid(), name, role, dept, photo, businessIds, activities: [], children: [] });
-    showToast('Persona aggiunta');
-  }
-
-  closeNodeModal();
-  persist();
-  render();
-}
-
-function deleteNode(bizId, nodeId) {
-  const biz = state.businesses.find(b => b.id === bizId);
-  if (!biz || !biz.tree) return;
-  const node = findNode(biz.tree, nodeId);
-  if (!node) return;
-  const childCount = countChildren(node);
-  const msg = childCount > 0
-    ? `Eliminare "${node.name}" e ${childCount} ${childCount === 1 ? 'persona sottoposta' : 'persone sottoposte'}?`
-    : `Eliminare "${node.name}"?`;
-  if (!confirm(msg)) return;
-
-  // Find parent and remove
-  const parent = findParent(biz.tree, nodeId);
-  if (parent) {
-    parent.children = parent.children.filter(c => c.id !== nodeId);
-  }
-  persist();
-  render();
-  showToast('Eliminato');
 }
 
 function countChildren(node) {
@@ -3751,33 +4621,43 @@ function renderLanesView() {
     return;
   }
 
-  // Index all persons in the tree, with their business tags
-  const allPersons = [];
-  const walkTree = (node) => {
-    if (!node) return;
-    allPersons.push(node);
-    (node.children || []).forEach(walkTree);
+  // Walk the tree and collect every person with their parent role context
+  // Result entries: { person, role, dept }
+  const personEntries = [];
+  const walkTree = (role) => {
+    if (!role) return;
+    const dept = (role.dept || role.title || '—').trim() || '—';
+    (role.persons || []).forEach(person => {
+      personEntries.push({ person, role, dept });
+    });
+    (role.children || []).forEach(walkTree);
   };
   walkTree(azienda.tree);
 
-  // Group lines into lanes with person lists, grouped by dept
+  // Group lines into lanes with person lists, grouped by dept then role
   const lanes = lines.map(line => {
-    const persons = allPersons.filter(p =>
-      Array.isArray(p.businessIds) && p.businessIds.includes(line.id)
+    const tagged = personEntries.filter(({ person }) =>
+      Array.isArray(person.businessIds) && person.businessIds.includes(line.id)
     );
-    // Group by dept
+    // Group by dept → then by role title
     const byDept = new Map();
-    persons.forEach(p => {
-      const dept = (p.dept || p.role || '—').trim() || '—';
-      if (!byDept.has(dept)) byDept.set(dept, []);
-      byDept.get(dept).push(p);
+    tagged.forEach(entry => {
+      if (!byDept.has(entry.dept)) byDept.set(entry.dept, new Map());
+      const byRole = byDept.get(entry.dept);
+      const key = entry.role.title || '—';
+      if (!byRole.has(key)) byRole.set(key, { role: entry.role, persons: [] });
+      byRole.get(key).persons.push(entry.person);
     });
-    // Sort dept entries alphabetically
-    const groups = [...byDept.entries()].sort(([a], [b]) => a.localeCompare(b));
-    return { line, persons, groups };
+    const groups = [...byDept.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([dept, roleMap]) => ({
+        dept,
+        roles: [...roleMap.values()].sort((a, b) => (a.role.title || '').localeCompare(b.role.title || ''))
+      }));
+    return { line, count: tagged.length, groups };
   });
 
-  const totalTagged = lanes.reduce((acc, l) => acc + l.persons.length, 0);
+  const totalTagged = lanes.reduce((acc, l) => acc + l.count, 0);
 
   wrap.innerHTML = `
     <div class="lanes-header">
@@ -3800,7 +4680,7 @@ function renderLanesView() {
 
   const grid = document.getElementById('lanesGrid');
 
-  lanes.forEach(({ line, persons, groups }) => {
+  lanes.forEach(({ line, count, groups }) => {
     const p = PALETTE[(line.colorIdx ?? 0) % PALETTE.length];
     const laneEl = document.createElement('div');
     laneEl.className = 'lane';
@@ -3808,7 +4688,7 @@ function renderLanesView() {
     laneEl.innerHTML = `
       <div class="lane-head">
         <span class="lane-name" style="color:${p.color}">${escapeHtml(line.name)}</span>
-        <span class="lane-count">${String(persons.length).padStart(2,'0')}</span>
+        <span class="lane-count">${String(count).padStart(2,'0')}</span>
         <button class="lane-edit-btn" title="Modifica business">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         </button>
@@ -3817,19 +4697,26 @@ function renderLanesView() {
         </button>
       </div>
       <div class="lane-body">
-        ${persons.length === 0 ? `
+        ${count === 0 ? `
           <div class="lane-empty">
-            Nessuna persona ancora taggata.<br>Dalla Vista Aziendale, apri la card di una persona → seleziona "${escapeHtml(line.name)}".
+            Nessuna persona ancora taggata.<br>Dalla Vista Aziendale, apri una persona → seleziona "${escapeHtml(line.name)}".
           </div>
-        ` : groups.map(([dept, people]) => `
-          <div class="lane-dept-head">${escapeHtml(dept)}</div>
-          ${people.map(person => `
-            <div class="lane-person" data-node-id="${person.id}">
-              ${renderAvatar(person, p, 'sm')}
-              <div class="lane-person-text">
-                <div class="lane-person-name">${escapeHtml(person.name || '—')}</div>
-                <div class="lane-person-role">${escapeHtml(person.role || '')}</div>
+        ` : groups.map(group => `
+          <div class="lane-dept-head">${escapeHtml(group.dept)}</div>
+          ${group.roles.map(({ role, persons }) => `
+            <div class="lane-role-block">
+              <div class="lane-role-title" data-role-id="${role.id}" style="font-family:var(--mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:${p.color};padding:6px 6px 2px;cursor:pointer;">
+                ${escapeHtml(role.title || '—')}
               </div>
+              ${persons.map(person => `
+                <div class="lane-person" data-role-id="${role.id}" data-person-id="${person.id}">
+                  ${renderAvatar(person, p, 'sm')}
+                  <div class="lane-person-text">
+                    <div class="lane-person-name">${escapeHtml(person.name || '—')}</div>
+                    <div class="lane-person-role">${escapeHtml(role.title || '')}</div>
+                  </div>
+                </div>
+              `).join('')}
             </div>
           `).join('')}
         `).join('')}
@@ -3845,10 +4732,18 @@ function renderLanesView() {
       e.stopPropagation();
       deleteBusinessLine(azienda.id, line.id);
     });
-    // Click a person to jump back to Vista Aziendale and scroll to that card
+    // Click a role title → jump to that role in Vista Aziendale
+    laneEl.querySelectorAll('.lane-role-title').forEach(el => {
+      el.addEventListener('click', () => jumpToNode(azienda.id, el.dataset.roleId));
+    });
+    // Click a person → open edit-person modal
     laneEl.querySelectorAll('.lane-person').forEach(personEl => {
       personEl.addEventListener('click', () => {
-        jumpToNode(azienda.id, personEl.dataset.nodeId);
+        openPersonModal({
+          bizId: azienda.id,
+          roleId: personEl.dataset.roleId,
+          personId: personEl.dataset.personId
+        });
       });
     });
   });
@@ -3877,9 +4772,9 @@ function gatherAllActivities() {
 
   state.businesses.forEach(biz => {
     if (!biz.tree) return;
-    const walk = (node) => {
-      if (Array.isArray(node.activities)) {
-        node.activities.forEach(act => {
+    const walk = (role) => {
+      if (Array.isArray(role.activities)) {
+        role.activities.forEach(act => {
           let status = 'undated';
           let diffDays = null;
           if (act.date) {
@@ -3894,10 +4789,10 @@ function gatherAllActivities() {
           } else if (act.recur && act.recur !== 'none') {
             status = 'recurring';
           }
-          all.push({ biz, node, activity: act, status, diffDays });
+          all.push({ biz, role, activity: act, status, diffDays });
         });
       }
-      (node.children || []).forEach(walk);
+      (role.children || []).forEach(walk);
     };
     walk(biz.tree);
   });
@@ -3915,13 +4810,16 @@ function renderDashboard() {
   }
   if (dashFilters.search) {
     const q = dashFilters.search.toLowerCase();
-    filtered = filtered.filter(x =>
-      (x.activity.cosa || '').toLowerCase().includes(q) ||
-      (x.activity.come || '').toLowerCase().includes(q) ||
-      (x.node.name || '').toLowerCase().includes(q) ||
-      (x.node.role || '').toLowerCase().includes(q) ||
-      (x.node.dept || '').toLowerCase().includes(q)
-    );
+    filtered = filtered.filter(x => {
+      const personMatch = (x.role.persons || []).some(p =>
+        (p.name || '').toLowerCase().includes(q)
+      );
+      return personMatch
+        || (x.activity.cosa || '').toLowerCase().includes(q)
+        || (x.activity.come || '').toLowerCase().includes(q)
+        || (x.role.title || '').toLowerCase().includes(q)
+        || (x.role.dept || '').toLowerCase().includes(q);
+    });
   }
 
   // Group by status
@@ -3938,8 +4836,8 @@ function renderDashboard() {
   groups.overdue.sort(byDate);
   groups.soon.sort(byDate);
   groups.upcoming.sort(byDate);
-  groups.recurring.sort((a, b) => (a.node.name || '').localeCompare(b.node.name || ''));
-  groups.undated.sort((a, b) => (a.node.name || '').localeCompare(b.node.name || ''));
+  groups.recurring.sort((a, b) => (a.role.title || '').localeCompare(b.role.title || ''));
+  groups.undated.sort((a, b) => (a.role.title || '').localeCompare(b.role.title || ''));
 
   // Stats from full set (not filtered) to give the user absolute context
   const stats = {
@@ -3988,7 +4886,7 @@ function renderDashboard() {
       }).join('')}
       <div class="dash-search">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="dashSearchInput" placeholder="Cerca per attività, persona, ruolo…" value="${escapeHtml(dashFilters.search)}">
+        <input type="text" id="dashSearchInput" placeholder="Cerca per attività, ruolo, persona…" value="${escapeHtml(dashFilters.search)}">
         ${dashFilters.search ? `<button class="dash-clear-search" id="dashClearSearch" title="Pulisci"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>` : ''}
       </div>
     </div>
@@ -4044,15 +4942,29 @@ function renderDashSection(key, title, items) {
   `;
 }
 
-function renderDashRow({ biz, node, activity, status }) {
+function renderDashRow({ biz, role, activity, status }) {
   const palette = PALETTE[biz.colorIdx % PALETTE.length];
   let extraClass = '';
   if (status === 'overdue') extraClass = 'is-overdue';
   else if (status === 'soon') extraClass = 'is-soon';
+
+  const persons = Array.isArray(role.persons) ? role.persons : [];
+  // Render up to 3 small avatars + a "+N" if more
+  const visibleP = persons.slice(0, 3);
+  const overflow = persons.length - visibleP.length;
+  const avatarsHtml = visibleP.map(p =>
+    renderAvatar(p, palette, 'sm')
+  ).join('');
+  const personLabel = persons.length === 0
+    ? '<span style="font-style:italic;color:var(--ink-mute);font-family:var(--serif);font-size:12px;">ruolo vacante</span>'
+    : persons.length === 1
+      ? escapeHtml(persons[0].name || '—')
+      : `${escapeHtml(persons[0].name)} <span style="color:var(--ink-mute);font-family:var(--mono);font-size:10px;">+${persons.length - 1}</span>`;
+
   return `
     <div class="dash-row ${extraClass}"
          data-biz-id="${biz.id}"
-         data-node-id="${node.id}"
+         data-node-id="${role.id}"
          data-activity-id="${activity.id}"
          style="--biz-color:${palette.color}">
       <div class="dash-biz">
@@ -4060,17 +4972,17 @@ function renderDashRow({ biz, node, activity, status }) {
         <span class="dash-biz-name">${escapeHtml(biz.name)}</span>
       </div>
       <div class="dash-person-wrap">
-        ${renderAvatar(node, palette, 'sm')}
+        <div style="display:flex;align-items:center;gap:-4px;">${avatarsHtml || renderAvatar({name: role.title}, palette, 'sm')}${overflow > 0 ? `<span style="font-family:var(--mono);font-size:10px;color:var(--ink-mute);margin-left:4px;">+${overflow}</span>` : ''}</div>
         <div class="dash-person-text">
-          <div class="dash-person-name">${escapeHtml(node.name || '—')}</div>
-          <div class="dash-person-role">${escapeHtml(node.role || node.dept || '')}</div>
+          <div class="dash-person-name">${escapeHtml(role.title || '—')}</div>
+          <div class="dash-person-role">${personLabel}</div>
         </div>
       </div>
       <div class="activity-cell cell-cosa" data-field="cosa" tabindex="0">${escapeHtml(activity.cosa || '')}</div>
       <div class="activity-cell cell-come" data-field="come" tabindex="0">${escapeHtml(activity.come || '')}</div>
       <div class="cell-quando">${renderQuandoCell(activity, biz)}</div>
       <div class="dash-actions">
-        <button class="dash-action-btn goto" data-act="goto" title="Vai alla card">
+        <button class="dash-action-btn goto" data-act="goto" title="Vai al ruolo">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
         </button>
         <button class="dash-action-btn danger" data-act="remove" title="Elimina attività">
@@ -4261,11 +5173,11 @@ function getInitials(name) {
 }
 
 /**
- * Render the small colored "biz-chip" badges below a person card, one per
- * business line the person is tagged with. Returns empty string if none.
+ * Render the small colored "biz-chip" badges (used inside person pills) for
+ * a single Person, one per business line they're tagged with.
  */
-function renderBusinessChipsForNode(node, azienda) {
-  const ids = Array.isArray(node.businessIds) ? node.businessIds : [];
+function renderBusinessChipsForPerson(person, azienda) {
+  const ids = Array.isArray(person.businessIds) ? person.businessIds : [];
   if (!ids.length) return '';
   const lines = Array.isArray(azienda.businesses) ? azienda.businesses : [];
   const chips = ids
@@ -4276,7 +5188,48 @@ function renderBusinessChipsForNode(node, azienda) {
       return `<span class="biz-chip" style="color:${p.color}">${escapeHtml(line.name)}</span>`;
     })
     .join('');
-  return chips ? `<div class="biz-chips">${chips}</div>` : '';
+  return chips;
+}
+
+/**
+ * Render the strip of person pills (avatar + name) at the bottom of each
+ * role card. Click a pill → edit that person; click "+" → add a new one.
+ */
+function renderPersonsStrip(role, azienda) {
+  const persons = Array.isArray(role.persons) ? role.persons : [];
+  const palette = PALETTE[azienda.colorIdx % PALETTE.length];
+
+  const pills = persons.map(person => {
+    return `
+      <div class="person-pill" data-person-id="${person.id}" title="${escapeHtml(person.name)}">
+        ${renderAvatar(person, palette)}
+        <span class="person-pill-name">${escapeHtml(person.name || '—')}</span>
+      </div>
+    `;
+  }).join('');
+
+  // Collect unique businessIds across all persons to show as chips beneath
+  const uniqueBizIds = new Set();
+  persons.forEach(p => (p.businessIds || []).forEach(id => uniqueBizIds.add(id)));
+  const lines = Array.isArray(azienda.businesses) ? azienda.businesses : [];
+  const bizChips = [...uniqueBizIds]
+    .map(id => lines.find(l => l.id === id))
+    .filter(Boolean)
+    .map(line => {
+      const p = PALETTE[(line.colorIdx ?? 0) % PALETTE.length];
+      return `<span class="biz-chip" style="color:${p.color}">${escapeHtml(line.name)}</span>`;
+    })
+    .join('');
+
+  return `
+    <div class="persons-strip">
+      ${persons.length === 0 ? '<span class="persons-strip-empty">nessuna persona</span>' : pills}
+      <button class="person-add-btn" data-act="add-person" title="Aggiungi persona a questo ruolo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+    </div>
+    ${bizChips ? `<div class="biz-chips">${bizChips}</div>` : ''}
+  `;
 }
 
 function renderAvatar(node, palette, sizeClass = '') {
@@ -4324,6 +5277,10 @@ async function processPhotoFile(file, size = 192) {
 
 /* ----------- MASTER RENDER ----------- */
 function render() {
+  // Fullscreen class on the .app shell
+  const appEl = document.querySelector('.app');
+  appEl.classList.toggle('fullscreen', !!state.fullscreen);
+
   renderSidebar();
   renderTopbar();
   const canvas = document.getElementById('canvas');
@@ -4345,12 +5302,31 @@ function render() {
   }
 }
 
+function toggleFullscreen() {
+  state.fullscreen = !state.fullscreen;
+  persist();
+  render();
+}
+
 /* ----------- WIRE GLOBAL EVENTS ----------- */
 document.getElementById('addBizBtn').addEventListener('click', () => openBizModal());
 document.getElementById('bizModalCancel').addEventListener('click', closeBizModal);
 document.getElementById('bizModalSave').addEventListener('click', saveBiz);
-document.getElementById('nodeModalCancel').addEventListener('click', closeNodeModal);
-document.getElementById('nodeModalSave').addEventListener('click', saveNode);
+
+// Role modal
+document.getElementById('roleModalCancel').addEventListener('click', closeRoleModal);
+document.getElementById('roleModalSave').addEventListener('click', saveRole);
+
+// Person modal
+document.getElementById('personModalCancel').addEventListener('click', closePersonModal);
+document.getElementById('personModalSave').addEventListener('click', savePerson);
+document.getElementById('personModalDelete').addEventListener('click', () => {
+  if (editingPersonCtx && editingPersonCtx.personId) {
+    deletePerson(editingPersonCtx.bizId, editingPersonCtx.roleId, editingPersonCtx.personId);
+  }
+});
+
+// Business line modal
 document.getElementById('businessLineModalCancel').addEventListener('click', closeBusinessLineModal);
 document.getElementById('businessLineModalSave').addEventListener('click', saveBusinessLine);
 document.getElementById('businessLineModal').addEventListener('keydown', (e) => {
@@ -4361,27 +5337,46 @@ document.getElementById('businessLineModal').addEventListener('click', (e) => {
   if (e.target.id === 'businessLineModal') closeBusinessLineModal();
 });
 
-// Enter key in modals
+// Enter / Escape in modals
 document.getElementById('bizModal').addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && (e.target.tagName === 'INPUT')) saveBiz();
   if (e.key === 'Escape') closeBizModal();
 });
-document.getElementById('nodeModal').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && (e.target.tagName === 'INPUT')) saveNode();
-  if (e.key === 'Escape') closeNodeModal();
+document.getElementById('roleModal').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && (e.target.tagName === 'INPUT')) saveRole();
+  if (e.key === 'Escape') closeRoleModal();
+});
+document.getElementById('personModal').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && (e.target.tagName === 'INPUT')) savePerson();
+  if (e.key === 'Escape') closePersonModal();
 });
 
 // Click outside to close
 document.getElementById('bizModal').addEventListener('click', (e) => {
   if (e.target.id === 'bizModal') closeBizModal();
 });
-document.getElementById('nodeModal').addEventListener('click', (e) => {
-  if (e.target.id === 'nodeModal') closeNodeModal();
+document.getElementById('roleModal').addEventListener('click', (e) => {
+  if (e.target.id === 'roleModal') closeRoleModal();
+});
+document.getElementById('personModal').addEventListener('click', (e) => {
+  if (e.target.id === 'personModal') closePersonModal();
 });
 
 // Expose for inline handlers
 window.openBizModal = openBizModal;
-window.openNodeModal = openNodeModal;
+window.openRoleModal = openRoleModal;
+window.openPersonModal = openPersonModal;
+
+// Esc exits fullscreen (only when no modal/procedure editor is open)
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  const procOpen = document.getElementById('procedureOverlay')?.classList.contains('open');
+  const anyModalOpen = document.querySelector('.modal-overlay.open');
+  if (procOpen || anyModalOpen) return;
+  if (state.fullscreen) {
+    toggleFullscreen();
+  }
+});
 
 /* ======================================================================
    AUTH (anonymous) — zero friction. Every browser gets an anonymous
