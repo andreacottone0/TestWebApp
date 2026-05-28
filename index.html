@@ -2062,14 +2062,99 @@
     border-color: var(--rose) !important;
   }
 
-  /* ---------- FULL-SCREEN MODE ---------- */
-  .app.fullscreen {
-    grid-template-columns: 0 1fr;
+  /* ---------- COMPACT SIDEBAR MODE ---------- */
+  /* Collapses the sidebar to a thin icon rail so the canvas gets more room. */
+  .app.compact-sidebar {
+    grid-template-columns: 64px 1fr;
   }
-  .app.fullscreen .sidebar {
+  .app.compact-sidebar .sidebar {
+    padding: 0;
+  }
+  .app.compact-sidebar .brand {
+    padding: 18px 0 14px;
+    text-align: center;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .app.compact-sidebar .brand-mark,
+  .app.compact-sidebar .brand-sub {
     display: none;
   }
-  .fullscreen-toggle {
+  .app.compact-sidebar .brand-title {
+    font-size: 18px;
+    line-height: 1;
+    letter-spacing: 0;
+  }
+  .app.compact-sidebar .brand-title em {
+    display: none;
+  }
+  .app.compact-sidebar .business-section-header { display: none; }
+  .app.compact-sidebar .business-list {
+    padding: 8px 0;
+  }
+  .app.compact-sidebar .dashboard-item {
+    margin: 8px 12px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    justify-content: center;
+  }
+  .app.compact-sidebar .dashboard-item.active {
+    background: transparent;
+    border: none;
+  }
+  .app.compact-sidebar .dashboard-item.active::before {
+    left: 0;
+    width: 3px;
+    height: 38px;
+  }
+  .app.compact-sidebar .dashboard-info { display: none; }
+  .app.compact-sidebar .dashboard-icon {
+    width: 38px; height: 38px;
+  }
+  .app.compact-sidebar .biz-item {
+    padding: 10px 12px;
+    margin: 2px 8px;
+    justify-content: center;
+    gap: 0;
+  }
+  .app.compact-sidebar .biz-item.active::before {
+    left: -8px;
+  }
+  .app.compact-sidebar .biz-dot {
+    width: 16px; height: 16px;
+  }
+  .app.compact-sidebar .biz-info,
+  .app.compact-sidebar .biz-actions { display: none; }
+  .app.compact-sidebar .add-biz-btn {
+    padding: 10px;
+    margin: 8px 12px;
+    font-size: 0;
+    line-height: 0;
+  }
+  .app.compact-sidebar .add-biz-btn svg {
+    width: 16px; height: 16px;
+  }
+  .app.compact-sidebar .sidebar-footer {
+    padding: 10px 0;
+    justify-content: center;
+  }
+  .app.compact-sidebar .sidebar-footer .save-status > span,
+  .app.compact-sidebar .sidebar-footer #footerVersion,
+  .app.compact-sidebar .user-email {
+    display: none;
+  }
+  .app.compact-sidebar .signout-btn {
+    font-size: 0;
+    padding: 6px;
+  }
+  .app.compact-sidebar .signout-btn::before {
+    content: '↻';
+    font-size: 14px;
+    color: inherit;
+  }
+
+  /* Toggle button (works for both expand and collapse) */
+  .sidebar-toggle {
     background: transparent;
     border: 1px solid var(--line);
     color: var(--ink-mute);
@@ -2081,17 +2166,11 @@
     justify-content: center;
     transition: all 0.15s;
   }
-  .fullscreen-toggle:hover {
+  .sidebar-toggle:hover {
     border-color: var(--amber);
     color: var(--amber);
   }
-  .fullscreen-toggle svg { width: 14px; height: 14px; }
-
-  /* When in fullscreen mode, give the canvas a touch more breathing room
-     and surface a subtle "exit fullscreen" hint */
-  .app.fullscreen .topbar {
-    padding-left: 36px;
-  }
+  .sidebar-toggle svg { width: 14px; height: 14px; }
 
   /* ---------- PROCEDURE EDITOR (full-screen, Notion-like) ---------- */
   .procedure-overlay {
@@ -2685,8 +2764,8 @@ const STORAGE_KEY = 'atlas_orgchart_state_v1';
 let state = {
   businesses: [],       // legacy name; semantically these are AZIENDE (companies)
   activeBizId: null,
-  activeView: 'tree',   // 'tree' (Vista Aziendale) | 'lanes' (Vista Business) | 'dashboard'
-  fullscreen: false,    // hides the sidebar; toggled via topbar button or keyboard
+  activeView: 'tree',     // 'tree' (Vista Aziendale) | 'lanes' (Vista Business) | 'dashboard'
+  compactSidebar: false,  // collapses sidebar to a thin icon rail
 };
 
 let editingBizId = null;
@@ -2828,8 +2907,12 @@ function migrateState() {
   // v1.1 → v1.5: activeView migration
   if (!state.activeView || state.activeView === 'business') state.activeView = 'tree';
 
-  // v1.7: fullscreen flag default
-  if (typeof state.fullscreen !== 'boolean') state.fullscreen = false;
+  // v1.7: compact sidebar (renamed from fullscreen)
+  if (typeof state.compactSidebar !== 'boolean') {
+    // Carry over from older `fullscreen` flag if present
+    state.compactSidebar = !!state.fullscreen;
+    delete state.fullscreen;
+  }
 }
 
 function setSaveStatus(status) {
@@ -3142,7 +3225,7 @@ function renderTopbar() {
     </div>
   `;
 
-  const isFs = state.fullscreen;
+  const isCompact = state.compactSidebar;
   actionsEl.innerHTML = `
     ${toggleHtml}
     ${!biz.tree ? `
@@ -3155,9 +3238,10 @@ function renderTopbar() {
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       Esporta
     </button>
-    <button class="fullscreen-toggle" id="fullscreenBtn" title="${isFs ? 'Comprimi (Esc)' : 'A tutto schermo'}">
-      ${isFs ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>`
-        : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/></svg>`}
+    <button class="sidebar-toggle" id="sidebarToggleBtn" title="${isCompact ? 'Espandi sidebar' : 'Comprimi sidebar'}">
+      ${isCompact
+        ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 18 19 12 13 6"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`
+        : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="11 18 5 12 11 6"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`}
     </button>
   `;
 
@@ -3165,7 +3249,7 @@ function renderTopbar() {
   const addRoot = document.getElementById('addRootBtn');
   if (addRoot) addRoot.addEventListener('click', () => openRoleModal({ bizId: biz.id, parentId: null, isRoot: true }));
 
-  document.getElementById('fullscreenBtn').addEventListener('click', toggleFullscreen);
+  document.getElementById('sidebarToggleBtn').addEventListener('click', toggleSidebarCompact);
 
   // View toggle
   actionsEl.querySelectorAll('.view-toggle-btn').forEach(btn => {
@@ -5277,9 +5361,9 @@ async function processPhotoFile(file, size = 192) {
 
 /* ----------- MASTER RENDER ----------- */
 function render() {
-  // Fullscreen class on the .app shell
+  // Compact sidebar class on the .app shell
   const appEl = document.querySelector('.app');
-  appEl.classList.toggle('fullscreen', !!state.fullscreen);
+  appEl.classList.toggle('compact-sidebar', !!state.compactSidebar);
 
   renderSidebar();
   renderTopbar();
@@ -5302,8 +5386,8 @@ function render() {
   }
 }
 
-function toggleFullscreen() {
-  state.fullscreen = !state.fullscreen;
+function toggleSidebarCompact() {
+  state.compactSidebar = !state.compactSidebar;
   persist();
   render();
 }
@@ -5367,16 +5451,6 @@ window.openBizModal = openBizModal;
 window.openRoleModal = openRoleModal;
 window.openPersonModal = openPersonModal;
 
-// Esc exits fullscreen (only when no modal/procedure editor is open)
-document.addEventListener('keydown', (e) => {
-  if (e.key !== 'Escape') return;
-  const procOpen = document.getElementById('procedureOverlay')?.classList.contains('open');
-  const anyModalOpen = document.querySelector('.modal-overlay.open');
-  if (procOpen || anyModalOpen) return;
-  if (state.fullscreen) {
-    toggleFullscreen();
-  }
-});
 
 /* ======================================================================
    AUTH (anonymous) — zero friction. Every browser gets an anonymous
