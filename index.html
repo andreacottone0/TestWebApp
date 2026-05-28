@@ -2605,7 +2605,7 @@
     </div>
     <div class="sidebar-footer" style="border-top:1px solid var(--line-soft);">
       <span class="user-email" id="userEmail" title=""></span>
-      <span id="footerVersion">v1.8</span>
+      <span id="footerVersion">v1.9</span>
     </div>
   </aside>
 
@@ -2708,9 +2708,24 @@
   <div class="modal">
     <div class="modal-header">
       <div class="modal-eyebrow" id="personModalEyebrow">Nuova persona</div>
-      <h3 class="modal-title">Aggiungi <em>al ruolo</em></h3>
+      <h3 class="modal-title" id="personModalTitle">Aggiungi <em>al ruolo</em></h3>
     </div>
-    <div class="modal-body">
+
+    <!-- Picker mode: choose an existing person already in this azienda -->
+    <div class="modal-body" id="personPickerBody" style="display:none;">
+      <div class="field">
+        <label class="field-label">Persone già presenti in questa azienda</label>
+        <input type="text" class="field-input" id="personSearchInput" placeholder="Cerca per nome…">
+      </div>
+      <div id="personSearchList" style="max-height:340px;overflow-y:auto;border:1px solid var(--line-soft);border-radius:3px;background:var(--bg-deep);"></div>
+      <button type="button" class="btn" id="personSwitchToFormBtn" style="margin-top:14px;width:100%;justify-content:center;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Crea una persona nuova
+      </button>
+    </div>
+
+    <!-- Form mode: create a new person (or edit existing master record) -->
+    <div class="modal-body" id="personFormBody">
       <div class="field">
         <label class="field-label">Foto (opzionale)</label>
         <div class="avatar-uploader">
@@ -2736,9 +2751,12 @@
         <label class="field-label">Business (opzionale, multipli)</label>
         <div id="personBusinessPicker"></div>
       </div>
+      <div id="personRolesUsage" style="margin-top:10px;font-family:var(--mono);font-size:10px;color:var(--ink-mute);letter-spacing:0.05em;"></div>
     </div>
+
     <div class="modal-footer">
-      <button class="btn delete-person-btn" id="personModalDelete" style="display:none;color:var(--rose);border-color:rgba(217,122,108,0.3);margin-right:auto;">Rimuovi dal ruolo</button>
+      <button class="btn delete-person-btn" id="personModalUnlink" style="display:none;color:var(--rose);border-color:rgba(217,122,108,0.3);margin-right:auto;">Togli da questo ruolo</button>
+      <button class="btn delete-person-btn" id="personModalDeleteGlobal" style="display:none;color:var(--rose);border-color:rgba(217,122,108,0.3);">Elimina persona</button>
       <button class="btn" id="personModalCancel">Annulla</button>
       <button class="btn primary" id="personModalSave">Salva</button>
     </div>
@@ -2979,9 +2997,31 @@ function migrateState() {
   };
 
   // `state.businesses` is the legacy name; semantically these are AZIENDE.
-  state.businesses.forEach(biz => {
-    if (!Array.isArray(biz.businesses)) biz.businesses = [];  // business lines within this azienda
-    if (biz.tree) migrateNode(biz.tree);
+  state.businesses.forEach(azienda => {
+    if (!Array.isArray(azienda.businesses)) azienda.businesses = [];  // business lines
+    if (azienda.tree) migrateNode(azienda.tree);
+
+    // v1.9: lift persons out of roles into an azienda-level master list.
+    // Roles keep `personIds[]` referencing the master records.
+    if (!Array.isArray(azienda.persons)) {
+      azienda.persons = [];
+      const liftPersons = (role) => {
+        if (!role) return;
+        if (Array.isArray(role.persons)) {
+          role.personIds = role.persons.map(p => p.id);
+          role.persons.forEach(p => {
+            if (!azienda.persons.find(mp => mp.id === p.id)) {
+              azienda.persons.push(p);
+            }
+          });
+          delete role.persons;
+        } else if (!Array.isArray(role.personIds)) {
+          role.personIds = [];
+        }
+        (role.children || []).forEach(liftPersons);
+      };
+      if (azienda.tree) liftPersons(azienda.tree);
+    }
   });
 
   // v1.1 → v1.5: activeView migration
@@ -3131,6 +3171,55 @@ function seedExample() {
     }
   ];
   state.activeBizId = b1Id;
+}
+
+/* ======================================================================
+   PERSON UTILITIES — persons live at azienda level; roles reference by id
+   ====================================================================== */
+
+function getPersonsForRole(azienda, role) {
+  if (!azienda || !role) return [];
+  const ids = Array.isArray(role.personIds) ? role.personIds : [];
+  const master = azienda.persons || [];
+  return ids.map(id => master.find(p => p.id === id)).filter(Boolean);
+}
+
+function findPersonGlobal(azienda, personId) {
+  if (!azienda) return null;
+  return (azienda.persons || []).find(p => p.id === personId) || null;
+}
+
+function rolesUsingPerson(azienda, personId) {
+  if (!azienda || !azienda.tree) return [];
+  const out = [];
+  const walk = (role) => {
+    if (!role) return;
+    if (Array.isArray(role.personIds) && role.personIds.includes(personId)) out.push(role);
+    (role.children || []).forEach(walk);
+  };
+  walk(azienda.tree);
+  return out;
+}
+
+function linkPersonToRole(role, personId) {
+  if (!Array.isArray(role.personIds)) role.personIds = [];
+  if (!role.personIds.includes(personId)) role.personIds.push(personId);
+}
+
+function unlinkPersonFromRole(role, personId) {
+  if (!Array.isArray(role.personIds)) return;
+  role.personIds = role.personIds.filter(id => id !== personId);
+}
+
+function deletePersonGlobally(azienda, personId) {
+  if (!azienda) return;
+  azienda.persons = (azienda.persons || []).filter(p => p.id !== personId);
+  const strip = (role) => {
+    if (!role) return;
+    unlinkPersonFromRole(role, personId);
+    (role.children || []).forEach(strip);
+  };
+  if (azienda.tree) strip(azienda.tree);
 }
 
 /* ----------- TREE UTILITIES ----------- */
@@ -3773,7 +3862,7 @@ function openProcedureEditor(bizId, roleId, activityId) {
   const saveText = document.getElementById('procSaveText');
 
   // Breadcrumb: Azienda · Ruolo
-  const persons = (role.persons || []).map(p => p.name).filter(Boolean).join(', ');
+  const persons = getPersonsForRole(biz, role).map(p => p.name).filter(Boolean).join(', ');
   contextEl.innerHTML = `<strong>${escapeHtml(biz.name)}</strong> · ${escapeHtml(role.title || '—')}${persons ? ' · ' + escapeHtml(persons) : ''}`;
 
   titleInput.value = act.cosa || '';
@@ -3993,7 +4082,7 @@ function renderTreeNode(node, biz, isRoot = false) {
   card.draggable = !isRoot; // root non draggabile (è il vertice)
   card.style.setProperty('--biz-color', palette.color);
 
-  const persons = Array.isArray(node.persons) ? node.persons : [];
+  const persons = getPersonsForRole(biz, node);
 
   card.innerHTML = `
     <div class="drop-hint">Sposta sotto</div>
@@ -4342,7 +4431,7 @@ function deleteRole(bizId, nodeId) {
   const node = findNode(biz.tree, nodeId);
   if (!node) return;
   const childCount = countChildren(node);
-  const personCount = (node.persons || []).length;
+  const personCount = (node.personIds || []).length;
   const pieces = [];
   if (personCount > 0) pieces.push(`${personCount} ${personCount === 1 ? 'persona assegnata' : 'persone assegnate'}`);
   if (childCount > 0) pieces.push(`${childCount} ${childCount === 1 ? 'ruolo sotto' : 'ruoli sotto'}`);
@@ -4369,25 +4458,72 @@ function openPersonModal(ctx) {
   editingPersonCtx = ctx;
   const modal = document.getElementById('personModal');
   const eyebrow = document.getElementById('personModalEyebrow');
+  const titleEl = document.getElementById('personModalTitle');
+  const pickerBody = document.getElementById('personPickerBody');
+  const formBody = document.getElementById('personFormBody');
   const nameInput = document.getElementById('personNameInput');
-  const deleteBtn = document.getElementById('personModalDelete');
+  const unlinkBtn = document.getElementById('personModalUnlink');
+  const deleteBtn = document.getElementById('personModalDeleteGlobal');
+  const usageEl = document.getElementById('personRolesUsage');
+
+  const azienda = state.businesses.find(b => b.id === ctx.bizId);
+  if (!azienda) return;
 
   if (ctx.personId) {
-    const biz = state.businesses.find(b => b.id === ctx.bizId);
-    const role = findNode(biz.tree, ctx.roleId);
-    const person = (role.persons || []).find(p => p.id === ctx.personId);
+    // ---- EDIT existing master person ----
+    const person = findPersonGlobal(azienda, ctx.personId);
     if (!person) return;
     nameInput.value = person.name || '';
     tempNodePhoto = person.photo || null;
     tempNodeBusinessIds = Array.isArray(person.businessIds) ? [...person.businessIds] : [];
     eyebrow.textContent = 'Modifica persona';
+    titleEl.innerHTML = 'Modifica <em>persona</em>';
+
+    pickerBody.style.display = 'none';
+    formBody.style.display = '';
+    // Unlink button: only useful if we have a roleId in context
+    unlinkBtn.style.display = ctx.roleId ? '' : 'none';
     deleteBtn.style.display = '';
+
+    // Usage label: shows which roles this person is assigned to
+    const rolesIn = rolesUsingPerson(azienda, ctx.personId);
+    if (rolesIn.length > 1) {
+      usageEl.textContent = `In ${rolesIn.length} ruoli: ${rolesIn.map(r => r.title || '—').join(' · ')}`;
+    } else if (rolesIn.length === 1) {
+      usageEl.textContent = `Solo nel ruolo "${rolesIn[0].title || '—'}"`;
+    } else {
+      usageEl.textContent = 'Non assegnata ad alcun ruolo';
+    }
   } else {
+    // ---- ADD a person to a role ----
+    // Persons available to LINK (already in azienda but NOT already in this role)
+    const role = findNode(azienda.tree, ctx.roleId);
+    const alreadyLinked = new Set((role && role.personIds) || []);
+    const available = (azienda.persons || []).filter(p => !alreadyLinked.has(p.id));
+
     nameInput.value = '';
     tempNodePhoto = null;
     tempNodeBusinessIds = [];
     eyebrow.textContent = 'Aggiungi persona al ruolo';
+    unlinkBtn.style.display = 'none';
     deleteBtn.style.display = 'none';
+    usageEl.textContent = '';
+
+    if (available.length > 0) {
+      // Start in picker mode
+      titleEl.innerHTML = 'Scegli o crea <em>persona</em>';
+      pickerBody.style.display = '';
+      formBody.style.display = 'none';
+      renderPersonPickerList();
+      const search = document.getElementById('personSearchInput');
+      search.value = '';
+      search.oninput = () => renderPersonPickerList();
+    } else {
+      // No existing persons — go straight to form
+      titleEl.innerHTML = 'Aggiungi <em>persona</em>';
+      pickerBody.style.display = 'none';
+      formBody.style.display = '';
+    }
   }
 
   setupAvatarUploader();
@@ -4397,7 +4533,81 @@ function openPersonModal(ctx) {
   nameInput.oninput = updateNodeAvatarPreview;
 
   modal.classList.add('open');
-  setTimeout(() => nameInput.focus(), 50);
+  setTimeout(() => {
+    if (pickerBody.style.display !== 'none') {
+      const s = document.getElementById('personSearchInput');
+      if (s) s.focus();
+    } else {
+      nameInput.focus();
+    }
+  }, 50);
+}
+
+function renderPersonPickerList() {
+  const list = document.getElementById('personSearchList');
+  const ctx = editingPersonCtx;
+  if (!list || !ctx) return;
+  const azienda = state.businesses.find(b => b.id === ctx.bizId);
+  if (!azienda) return;
+  const role = findNode(azienda.tree, ctx.roleId);
+  const alreadyLinked = new Set((role && role.personIds) || []);
+  const q = (document.getElementById('personSearchInput').value || '').toLowerCase().trim();
+  const palette = PALETTE[azienda.colorIdx % PALETTE.length];
+
+  const filtered = (azienda.persons || [])
+    .filter(p => !alreadyLinked.has(p.id))
+    .filter(p => !q || (p.name || '').toLowerCase().includes(q));
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div style="padding:18px;text-align:center;font-style:italic;color:var(--ink-mute);font-family:var(--serif);">Nessun risultato. Usa "Crea persona nuova" qui sotto.</div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(p => {
+    const otherRoles = rolesUsingPerson(azienda, p.id);
+    const rolesStr = otherRoles.length ? otherRoles.map(r => escapeHtml(r.title || '—')).join(' · ') : '<em style="color:var(--ink-mute)">non assegnata</em>';
+    return `
+      <div class="person-pick-row" data-person-id="${p.id}" style="display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--line-soft);transition:background 0.12s;">
+        ${renderAvatar(p, palette, 'sm')}
+        <div style="flex:1;min-width:0;">
+          <div style="font-family:var(--serif);font-size:14px;color:var(--ink);">${escapeHtml(p.name || '—')}</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--ink-dim);letter-spacing:0.04em;margin-top:2px;">${rolesStr}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  list.querySelectorAll('.person-pick-row').forEach(row => {
+    row.addEventListener('mouseenter', () => row.style.background = 'rgba(255,255,255,0.04)');
+    row.addEventListener('mouseleave', () => row.style.background = '');
+    row.addEventListener('click', () => linkExistingPersonToRole(row.dataset.personId));
+  });
+}
+
+function linkExistingPersonToRole(personId) {
+  const ctx = editingPersonCtx;
+  if (!ctx) return;
+  const azienda = state.businesses.find(b => b.id === ctx.bizId);
+  if (!azienda) return;
+  const role = findNode(azienda.tree, ctx.roleId);
+  if (!role) return;
+  linkPersonToRole(role, personId);
+  closePersonModal();
+  persist();
+  render();
+  showToast('Persona collegata al ruolo');
+}
+
+function switchPersonModalToForm() {
+  document.getElementById('personPickerBody').style.display = 'none';
+  document.getElementById('personFormBody').style.display = '';
+  const titleEl = document.getElementById('personModalTitle');
+  titleEl.innerHTML = 'Nuova <em>persona</em>';
+  // Carry over the typed query as initial name
+  const q = document.getElementById('personSearchInput').value;
+  const nameInput = document.getElementById('personNameInput');
+  nameInput.value = q || '';
+  setTimeout(() => nameInput.focus(), 30);
 }
 
 function closePersonModal() {
@@ -4413,17 +4623,16 @@ function savePerson() {
   const name = document.getElementById('personNameInput').value.trim();
   if (!name) { document.getElementById('personNameInput').focus(); return; }
 
-  const biz = state.businesses.find(b => b.id === ctx.bizId);
-  if (!biz) return;
-  const role = findNode(biz.tree, ctx.roleId);
-  if (!role) return;
-  if (!Array.isArray(role.persons)) role.persons = [];
+  const azienda = state.businesses.find(b => b.id === ctx.bizId);
+  if (!azienda) return;
+  if (!Array.isArray(azienda.persons)) azienda.persons = [];
 
   const photo = tempNodePhoto || null;
   const businessIds = [...tempNodeBusinessIds];
 
   if (ctx.personId) {
-    const person = role.persons.find(p => p.id === ctx.personId);
+    // EDIT existing master person (propagates to all roles)
+    const person = findPersonGlobal(azienda, ctx.personId);
     if (person) {
       person.name = name;
       person.photo = photo;
@@ -4431,8 +4640,12 @@ function savePerson() {
       showToast('Persona aggiornata');
     }
   } else {
-    role.persons.push({ id: uid(), name, photo, businessIds });
-    showToast('Persona aggiunta');
+    // CREATE new master + link to role
+    const newPerson = { id: uid(), name, photo, businessIds };
+    azienda.persons.push(newPerson);
+    const role = findNode(azienda.tree, ctx.roleId);
+    if (role) linkPersonToRole(role, newPerson.id);
+    showToast('Persona creata e collegata');
   }
 
   closePersonModal();
@@ -4440,19 +4653,39 @@ function savePerson() {
   render();
 }
 
-function deletePerson(bizId, roleId, personId) {
-  const biz = state.businesses.find(b => b.id === bizId);
-  if (!biz || !biz.tree) return;
-  const role = findNode(biz.tree, roleId);
-  if (!role || !Array.isArray(role.persons)) return;
-  const person = role.persons.find(p => p.id === personId);
-  if (!person) return;
-  if (!confirm(`Rimuovere "${person.name}" dal ruolo "${role.title}"?`)) return;
-  role.persons = role.persons.filter(p => p.id !== personId);
+function unlinkPersonFromCurrentRole() {
+  const ctx = editingPersonCtx;
+  if (!ctx || !ctx.roleId || !ctx.personId) return;
+  const azienda = state.businesses.find(b => b.id === ctx.bizId);
+  if (!azienda || !azienda.tree) return;
+  const role = findNode(azienda.tree, ctx.roleId);
+  const person = findPersonGlobal(azienda, ctx.personId);
+  if (!role || !person) return;
+  if (!confirm(`Togliere "${person.name}" dal ruolo "${role.title}"?\nLa persona resta nell'azienda e può essere riassegnata.`)) return;
+  unlinkPersonFromRole(role, ctx.personId);
   closePersonModal();
   persist();
   render();
-  showToast('Persona rimossa');
+  showToast('Tolto dal ruolo');
+}
+
+function deletePersonFromAzienda() {
+  const ctx = editingPersonCtx;
+  if (!ctx || !ctx.personId) return;
+  const azienda = state.businesses.find(b => b.id === ctx.bizId);
+  if (!azienda) return;
+  const person = findPersonGlobal(azienda, ctx.personId);
+  if (!person) return;
+  const rolesIn = rolesUsingPerson(azienda, ctx.personId);
+  const extra = rolesIn.length > 0
+    ? `\nVerrà tolta anche da ${rolesIn.length} ${rolesIn.length === 1 ? 'ruolo' : 'ruoli'}.`
+    : '';
+  if (!confirm(`Eliminare definitivamente "${person.name}" dall'azienda?${extra}\nL'azione è irreversibile.`)) return;
+  deletePersonGlobally(azienda, ctx.personId);
+  closePersonModal();
+  persist();
+  render();
+  showToast('Persona eliminata');
 }
 
 /* ----------- avatar uploader + business picker (used by personModal) ----------- */
@@ -4825,7 +5058,7 @@ function renderLanesView() {
   const walkTree = (role) => {
     if (!role) return;
     const dept = (role.dept || role.title || '—').trim() || '—';
-    (role.persons || []).forEach(person => {
+    getPersonsForRole(azienda, role).forEach(person => {
       personEntries.push({ person, role, dept });
     });
     (role.children || []).forEach(walkTree);
@@ -5009,7 +5242,7 @@ function renderDashboard() {
   if (dashFilters.search) {
     const q = dashFilters.search.toLowerCase();
     filtered = filtered.filter(x => {
-      const personMatch = (x.role.persons || []).some(p =>
+      const personMatch = getPersonsForRole(x.biz, x.role).some(p =>
         (p.name || '').toLowerCase().includes(q)
       );
       return personMatch
@@ -5146,7 +5379,7 @@ function renderDashRow({ biz, role, activity, status }) {
   if (status === 'overdue') extraClass = 'is-overdue';
   else if (status === 'soon') extraClass = 'is-soon';
 
-  const persons = Array.isArray(role.persons) ? role.persons : [];
+  const persons = getPersonsForRole(biz, role);
   // Render up to 3 small avatars + a "+N" if more
   const visibleP = persons.slice(0, 3);
   const overflow = persons.length - visibleP.length;
@@ -5394,7 +5627,7 @@ function renderBusinessChipsForPerson(person, azienda) {
  * role card. Click a pill → edit that person; click "+" → add a new one.
  */
 function renderPersonsStrip(role, azienda) {
-  const persons = Array.isArray(role.persons) ? role.persons : [];
+  const persons = getPersonsForRole(azienda, role);
   const palette = PALETTE[azienda.colorIdx % PALETTE.length];
 
   const pills = persons.map(person => {
@@ -5553,11 +5786,9 @@ document.getElementById('roleModalSave').addEventListener('click', saveRole);
 // Person modal
 document.getElementById('personModalCancel').addEventListener('click', closePersonModal);
 document.getElementById('personModalSave').addEventListener('click', savePerson);
-document.getElementById('personModalDelete').addEventListener('click', () => {
-  if (editingPersonCtx && editingPersonCtx.personId) {
-    deletePerson(editingPersonCtx.bizId, editingPersonCtx.roleId, editingPersonCtx.personId);
-  }
-});
+document.getElementById('personModalUnlink').addEventListener('click', unlinkPersonFromCurrentRole);
+document.getElementById('personModalDeleteGlobal').addEventListener('click', deletePersonFromAzienda);
+document.getElementById('personSwitchToFormBtn').addEventListener('click', switchPersonModalToForm);
 
 // Business line modal
 document.getElementById('businessLineModalCancel').addEventListener('click', closeBusinessLineModal);
