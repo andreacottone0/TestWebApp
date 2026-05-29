@@ -2542,6 +2542,385 @@
     color: var(--amber);
   }
   .activity-procedure-btn svg { width: 12px; height: 12px; }
+
+  /* ---------- BUDGET MODE: KPI bar + role cost badges ---------- */
+  .budget-toggle {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--ink-mute);
+    cursor: pointer;
+    padding: 7px 11px;
+    border-radius: 3px;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+  }
+  .budget-toggle:hover { border-color: var(--amber); color: var(--amber); }
+  .budget-toggle.active {
+    background: var(--amber);
+    border-color: var(--amber);
+    color: var(--bg-deep);
+  }
+
+  .kpi-bar {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--line);
+    padding: 14px 36px;
+    overflow-x: auto;
+    position: sticky;
+    top: 0;
+    z-index: 4;
+  }
+  .kpi-block {
+    display: flex;
+    flex-direction: column;
+    padding: 0 22px;
+    border-right: 1px solid var(--line-soft);
+    min-width: 170px;
+  }
+  .kpi-block:first-child { padding-left: 0; }
+  .kpi-block:last-child { border-right: none; padding-right: 0; }
+  .kpi-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-bottom: 4px;
+  }
+  .kpi-value {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--amber);
+    line-height: 1.1;
+  }
+  .kpi-sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-dim);
+    letter-spacing: 0.02em;
+    margin-top: 4px;
+  }
+  .kpi-list { display: flex; flex-direction: column; gap: 2px; }
+  .kpi-list-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+  }
+  .kpi-list-row .name {
+    font-family: var(--sans);
+    color: var(--ink-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
+  }
+  .kpi-list-row .val {
+    font-family: var(--mono);
+    color: var(--ink);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .kpi-list-row .name .dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+
+  .role-cost-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+    padding: 3px 9px;
+    border-radius: 10px;
+    background: rgba(232,160,74,0.12);
+    border: 1px solid rgba(232,160,74,0.3);
+    color: var(--amber);
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+  }
+  .role-cost-badge::before { content: '€'; font-size: 11px; opacity: 0.8; }
+
+  /* ---------- PERSONE VIEW ---------- */
+  .people-wrap {
+    padding: 28px 36px 80px;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  .people-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 18px;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .people-title {
+    font-family: var(--serif);
+    font-size: 24px;
+    font-weight: 400;
+    letter-spacing: -0.015em;
+  }
+  .people-title em { font-style: italic; color: var(--amber); }
+  .people-count {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-mute);
+    letter-spacing: 0.08em;
+    margin-left: 12px;
+  }
+  .people-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    padding: 12px 16px;
+    background: var(--bg-panel);
+    border: 1px solid var(--line-soft);
+    border-radius: 4px;
+  }
+  .people-search {
+    flex: 1;
+    background: var(--bg-deep);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 8px 12px;
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 13px;
+  }
+  .people-search:focus { outline: none; border-color: var(--amber); }
+  .people-dupes-banner {
+    margin-bottom: 14px;
+    padding: 10px 16px;
+    border: 1px solid rgba(217,122,108,0.35);
+    background: rgba(217,122,108,0.08);
+    border-radius: 4px;
+    color: var(--rose);
+    font-family: var(--sans);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .people-dupes-banner svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  .people-table {
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .people-row {
+    display: grid;
+    grid-template-columns: 50px 1.4fr 1.6fr 1fr 110px 80px;
+    align-items: center;
+    gap: 0;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line-soft);
+    transition: background 0.12s;
+    cursor: pointer;
+  }
+  .people-row:last-child { border-bottom: none; }
+  .people-row:hover { background: rgba(255,255,255,0.025); }
+  .people-row.duplicate { box-shadow: inset 3px 0 0 var(--rose); }
+  .people-row > div { padding: 0 8px; }
+  .people-row-avatar { display: flex; align-items: center; }
+  .people-row-name {
+    font-family: var(--serif);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .people-row-name .dupe-mark {
+    color: var(--rose);
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    margin-left: 8px;
+    text-transform: uppercase;
+  }
+  .people-row-roles {
+    font-family: var(--sans);
+    font-size: 12px;
+    color: var(--ink-dim);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .people-row-roles .unassigned {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--ink-mute);
+  }
+  .people-row-businesses {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .people-row-cost {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--amber);
+    text-align: right;
+  }
+  .people-row-cost.zero {
+    color: var(--ink-mute);
+    font-weight: 400;
+  }
+  .people-row-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .people-row:hover .people-row-actions { opacity: 1; }
+  .people-row-actions button {
+    background: transparent;
+    border: none;
+    color: var(--ink-mute);
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 3px;
+    display: flex;
+  }
+  .people-row-actions button:hover { background: var(--line); color: var(--ink); }
+  .people-row-actions button.danger:hover { color: var(--rose); }
+  .people-row-actions svg { width: 13px; height: 13px; }
+
+  .people-empty {
+    padding: 70px 20px;
+    text-align: center;
+  }
+  .people-empty-title {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 400;
+    margin-bottom: 8px;
+  }
+  .people-empty-title em { font-style: italic; color: var(--amber); }
+  .people-empty-text {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--ink-mute);
+    font-size: 14px;
+    max-width: 380px;
+    margin: 0 auto 18px;
+  }
+
+  /* ---------- COMPENSATIONS in person modal ---------- */
+  .comp-lines { display: flex; flex-direction: column; gap: 10px; }
+  .comp-line {
+    background: var(--bg-deep);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 10px 12px;
+    display: grid;
+    grid-template-columns: 1.2fr 1.1fr 1fr 1fr 24px;
+    gap: 7px;
+    align-items: center;
+  }
+  .comp-line select,
+  .comp-line input {
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--line-soft);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 12px;
+    padding: 6px 8px;
+    border-radius: 2px;
+    outline: none;
+    min-width: 0;
+    width: 100%;
+  }
+  .comp-line select:focus,
+  .comp-line input:focus { border-color: var(--amber); }
+  .comp-line .comp-amount-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .comp-line .comp-amount-wrap::after {
+    content: attr(data-suffix);
+    position: absolute;
+    right: 8px;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--ink-mute);
+    pointer-events: none;
+    letter-spacing: 0.04em;
+  }
+  .comp-line .comp-amount-wrap input {
+    padding-right: 30px;
+  }
+  .comp-del-btn {
+    background: transparent;
+    border: none;
+    color: var(--ink-mute);
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    border-radius: 2px;
+    justify-self: end;
+  }
+  .comp-del-btn:hover { color: var(--rose); background: rgba(217,122,108,0.08); }
+  .comp-del-btn svg { width: 13px; height: 13px; }
+  .comp-add-btn {
+    width: 100%;
+    background: transparent;
+    border: 1px dashed var(--line);
+    color: var(--ink-dim);
+    padding: 9px;
+    border-radius: 3px;
+    font-family: var(--sans);
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.15s;
+    margin-top: 8px;
+  }
+  .comp-add-btn:hover { border-color: var(--amber); color: var(--amber); }
+  .comp-add-btn svg { width: 12px; height: 12px; }
+  .comp-total {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    color: var(--amber);
+    text-align: right;
+    margin-top: 8px;
+  }
+  .comp-total strong { font-size: 14px; font-weight: 600; }
+
+  .comp-line .comp-row-2 {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+    margin-top: 2px;
+  }
 </style>
 </head>
 <body>
@@ -2605,7 +2984,7 @@
     </div>
     <div class="sidebar-footer" style="border-top:1px solid var(--line-soft);">
       <span class="user-email" id="userEmail" title=""></span>
-      <span id="footerVersion">v1.9</span>
+      <span id="footerVersion">v2.0</span>
     </div>
   </aside>
 
@@ -2646,6 +3025,13 @@
       <div class="field">
         <label class="field-label">Colore identificativo</label>
         <div class="color-picker" id="bizColorPicker"></div>
+      </div>
+      <div class="field">
+        <label class="field-label">Fatturato mensile stimato (per le provvigioni)</label>
+        <div style="position:relative;">
+          <input type="number" min="0" step="100" class="field-input" id="bizRevenueInput" placeholder="0" style="padding-right:36px;">
+          <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:11px;color:var(--ink-mute);">€/mese</span>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
@@ -2750,6 +3136,15 @@
       <div class="field">
         <label class="field-label">Business (opzionale, multipli)</label>
         <div id="personBusinessPicker"></div>
+      </div>
+      <div class="field">
+        <label class="field-label">Compensi mensili (opzionale)</label>
+        <div class="comp-lines" id="personCompList"></div>
+        <button type="button" class="comp-add-btn" id="personCompAddBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Aggiungi linea di compenso
+        </button>
+        <div class="comp-total" id="personCompTotal"></div>
       </div>
       <div id="personRolesUsage" style="margin-top:10px;font-family:var(--mono);font-size:10px;color:var(--ink-mute);letter-spacing:0.05em;"></div>
     </div>
@@ -2859,9 +3254,10 @@ const STORAGE_KEY = 'atlas_orgchart_state_v1';
 let state = {
   businesses: [],       // legacy name; semantically these are AZIENDE (companies)
   activeBizId: null,
-  activeView: 'tree',     // 'tree' (Vista Aziendale) | 'lanes' (Vista Business) | 'dashboard'
+  activeView: 'tree',     // 'tree' | 'lanes' | 'people' | 'dashboard'
   compactSidebar: false,  // collapses sidebar to a thin icon rail
   zoom: 1,                // 0.5 → 2.0; applied to tree + lanes canvas
+  budgetMode: false,      // shows KPI bar + cost badges
 };
 
 const ZOOM_STEPS = [0.5, 0.6, 0.7, 0.85, 1, 1.15, 1.3, 1.5, 1.75, 2];
@@ -2870,6 +3266,7 @@ let editingBizId = null;
 // editingRoleCtx + editingPersonCtx are declared near their modal functions.
 let tempNodePhoto = null;       // pending photo dataURL (shared by personModal)
 let tempNodeBusinessIds = [];   // pending businessIds[] (shared by personModal)
+let tempNodeCompensations = []; // pending compensation lines while person modal is open
 let editingBusinessLine = null; // { bizId, lineId? } for the business-line manage modal
 
 // Dashboard filters (ephemeral, not persisted)
@@ -3002,7 +3399,6 @@ function migrateState() {
     if (azienda.tree) migrateNode(azienda.tree);
 
     // v1.9: lift persons out of roles into an azienda-level master list.
-    // Roles keep `personIds[]` referencing the master records.
     if (!Array.isArray(azienda.persons)) {
       azienda.persons = [];
       const liftPersons = (role) => {
@@ -3022,6 +3418,14 @@ function migrateState() {
       };
       if (azienda.tree) liftPersons(azienda.tree);
     }
+
+    // v2.0: budget — monthly revenue estimate + compensation lines per person
+    if (typeof azienda.monthlyRevenueEstimate !== 'number') {
+      azienda.monthlyRevenueEstimate = 0;
+    }
+    (azienda.persons || []).forEach(p => {
+      if (!Array.isArray(p.compensations)) p.compensations = [];
+    });
   });
 
   // v1.1 → v1.5: activeView migration
@@ -3036,6 +3440,9 @@ function migrateState() {
   // v1.8: zoom
   if (typeof state.zoom !== 'number' || isNaN(state.zoom)) state.zoom = 1;
   state.zoom = Math.max(0.5, Math.min(2, state.zoom));
+
+  // v2.0: budget mode default
+  if (typeof state.budgetMode !== 'boolean') state.budgetMode = false;
 }
 
 function setSaveStatus(status) {
@@ -3222,6 +3629,141 @@ function deletePersonGlobally(azienda, personId) {
   if (azienda.tree) strip(azienda.tree);
 }
 
+/* ======================================================================
+   BUDGET / COST CALCULATIONS
+   - Each compensation line resolves to a "monthly euro" figure.
+   - A person's total cost is the sum of all their lines.
+   - Cost allocation to roles:
+       lines tagged with roleId → fully on that role
+       lines without roleId     → split equally across all roles the person fills
+   ====================================================================== */
+
+const COMPENSATION_TYPES = {
+  fixed_monthly:  { label: 'Fisso mensile',        suffix: '€/mese',   needsQty: false, isPct: false, defaultUnit: '' },
+  fixed_project:  { label: 'Fisso a progetto',     suffix: '€/progetto', needsQty: true,  isPct: false, defaultUnit: 'progetto' },
+  commission:     { label: 'Percentuale fatturato', suffix: '% fatt.',   needsQty: false, isPct: true,  defaultUnit: '' },
+  per_unit:       { label: 'Per unità prodotta',    suffix: '€/unità',  needsQty: true,  isPct: false, defaultUnit: 'unità' }
+};
+
+/**
+ * Resolve a single compensation line into expected monthly euros.
+ * @param {object} line - compensation line
+ * @param {object} azienda - the parent azienda (for monthlyRevenueEstimate)
+ */
+function lineMonthlyCost(line, azienda) {
+  if (!line) return 0;
+  const amount = Number(line.amount) || 0;
+  const qty = Number(line.quantityPerMonth) || 0;
+  switch (line.type) {
+    case 'fixed_monthly': return amount;
+    case 'fixed_project': return amount * qty;
+    case 'per_unit':      return amount * qty;
+    case 'commission': {
+      const revenue = Number(azienda?.monthlyRevenueEstimate) || 0;
+      return (amount / 100) * revenue;
+    }
+    default: return 0;
+  }
+}
+
+function personMonthlyCost(person, azienda) {
+  if (!person) return 0;
+  return (person.compensations || []).reduce((sum, line) => sum + lineMonthlyCost(line, azienda), 0);
+}
+
+/**
+ * Allocate a person's cost to the roles they fill, following the rule:
+ *  - tagged lines (line.roleId) → fully on that role (only if person is in it)
+ *  - untagged lines → split equally across all roles the person fills
+ * @returns {Map<roleId, euros>}
+ */
+function personCostByRole(person, azienda) {
+  const out = new Map();
+  if (!person) return out;
+  const rolesIn = rolesUsingPerson(azienda, person.id);
+  const roleIds = new Set(rolesIn.map(r => r.id));
+  const roleCount = rolesIn.length;
+
+  (person.compensations || []).forEach(line => {
+    const cost = lineMonthlyCost(line, azienda);
+    if (cost === 0) return;
+
+    if (line.roleId && roleIds.has(line.roleId)) {
+      out.set(line.roleId, (out.get(line.roleId) || 0) + cost);
+    } else if (roleCount > 0) {
+      // Untagged → equal split across all current roles
+      const per = cost / roleCount;
+      rolesIn.forEach(r => {
+        out.set(r.id, (out.get(r.id) || 0) + per);
+      });
+    }
+    // If person is in 0 roles, untagged costs are unassigned (excluded from role KPIs)
+  });
+
+  return out;
+}
+
+function totalMonthlyCost(azienda) {
+  if (!azienda) return 0;
+  return (azienda.persons || []).reduce((sum, p) => sum + personMonthlyCost(p, azienda), 0);
+}
+
+function costByRole(azienda) {
+  const out = new Map();
+  if (!azienda || !azienda.tree) return out;
+  (azienda.persons || []).forEach(p => {
+    const breakdown = personCostByRole(p, azienda);
+    breakdown.forEach((v, roleId) => {
+      out.set(roleId, (out.get(roleId) || 0) + v);
+    });
+  });
+  return out;
+}
+
+function costByBusiness(azienda) {
+  const out = new Map();
+  if (!azienda) return out;
+  (azienda.businesses || []).forEach(line => out.set(line.id, 0));
+  (azienda.persons || []).forEach(p => {
+    const personCost = personMonthlyCost(p, azienda);
+    const bizIds = Array.isArray(p.businessIds) ? p.businessIds : [];
+    if (bizIds.length === 0 || personCost === 0) return;
+    const share = personCost / bizIds.length;
+    bizIds.forEach(bid => {
+      out.set(bid, (out.get(bid) || 0) + share);
+    });
+  });
+  return out;
+}
+
+function formatEuro(value) {
+  const n = Math.round(Number(value) || 0);
+  // Italian formatting: thousand separator '.', no decimals
+  return '€ ' + n.toLocaleString('it-IT', { maximumFractionDigits: 0 });
+}
+
+/**
+ * Detect probable duplicate persons inside an azienda by lowercased name.
+ * Returns an array of arrays — each inner array contains 2+ persons judged equal.
+ */
+function detectDuplicatePersons(azienda) {
+  if (!azienda) return [];
+  const map = new Map();
+  (azienda.persons || []).forEach(p => {
+    const key = (p.name || '').trim().toLowerCase();
+    if (!key) return;
+    if (!map.has(key)) map.set(key, []);
+    map.get(key).push(p);
+  });
+  return [...map.values()].filter(arr => arr.length > 1);
+}
+
+function dupePersonIds(azienda) {
+  const set = new Set();
+  detectDuplicatePersons(azienda).forEach(group => group.forEach(p => set.add(p.id)));
+  return set;
+}
+
 /* ----------- TREE UTILITIES ----------- */
 function findNode(node, id) {
   if (!node) return null;
@@ -3393,9 +3935,10 @@ function renderTopbar() {
     <span class="current-biz-tag" style="border-color: ${palette.color}40; color: ${palette.color}">${escapeHtml(biz.tag || 'Azienda')}</span>
   `;
 
-  // View toggle pill: Aziendale | Business
-  const isTree  = state.activeView === 'tree';
-  const isLanes = state.activeView === 'lanes';
+  // View toggle pill: Aziendale | Business | Persone
+  const isTree   = state.activeView === 'tree';
+  const isLanes  = state.activeView === 'lanes';
+  const isPeople = state.activeView === 'people';
   const toggleHtml = `
     <div class="view-toggle" style="--biz-color:${palette.color}">
       <button class="view-toggle-btn ${isTree ? 'active' : ''}" data-view="tree" title="Albero organizzativo">
@@ -3405,6 +3948,10 @@ function renderTopbar() {
       <button class="view-toggle-btn ${isLanes ? 'active' : ''}" data-view="lanes" title="Vista per linee di business">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="16" rx="1"/><rect x="17" y="4" width="4" height="16" rx="1"/></svg>
         Business
+      </button>
+      <button class="view-toggle-btn ${isPeople ? 'active' : ''}" data-view="people" title="Master list delle persone">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><circle cx="17" cy="8" r="2.5"/><path d="M21 21v-2a3.5 3.5 0 0 0-3-3.5"/></svg>
+        Persone
       </button>
     </div>
   `;
@@ -3431,9 +3978,13 @@ function renderTopbar() {
     </div>
   `;
 
+  const isBudget = state.budgetMode;
   actionsEl.innerHTML = `
     ${toggleHtml}
     ${zoomHtml}
+    <button class="budget-toggle ${isBudget ? 'active' : ''}" id="budgetToggleBtn" title="Mostra KPI di costo">
+      <span>€</span>BUDGET
+    </button>
     ${!biz.tree ? `
       <button class="btn primary" id="addRootBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -3453,6 +4004,7 @@ function renderTopbar() {
   document.getElementById('zoomOutBtn').addEventListener('click', () => zoomBy(-1));
   document.getElementById('zoomInBtn').addEventListener('click', () => zoomBy(+1));
   document.getElementById('zoomLevelBtn').addEventListener('click', () => setZoom(1));
+  document.getElementById('budgetToggleBtn').addEventListener('click', toggleBudgetMode);
 
   // View toggle
   actionsEl.querySelectorAll('.view-toggle-btn').forEach(btn => {
@@ -3518,6 +4070,9 @@ function renderCanvas() {
     `;
     return;
   }
+
+  // KPI bar above the tree when budget mode is on
+  if (state.budgetMode) canvas.appendChild(buildKpiBar(biz));
 
   const tree = document.createElement('div');
   tree.className = 'tree';
@@ -4084,6 +4639,14 @@ function renderTreeNode(node, biz, isRoot = false) {
 
   const persons = getPersonsForRole(biz, node);
 
+  // Cost badge — visible only in budget mode and only if there's a positive cost
+  let costBadge = '';
+  if (state.budgetMode) {
+    const breakdown = costByRole(biz);
+    const c = breakdown.get(node.id) || 0;
+    if (c > 0) costBadge = `<div class="role-cost-badge">${formatEuro(c)}/mese</div>`;
+  }
+
   card.innerHTML = `
     <div class="drop-hint">Sposta sotto</div>
     <div class="card-color-bar"></div>
@@ -4091,6 +4654,7 @@ function renderTreeNode(node, biz, isRoot = false) {
       <div class="card-text">
         <div class="card-role">${escapeHtml(node.dept || '')}</div>
         <div class="card-name">${escapeHtml(node.title || '—')}</div>
+        ${costBadge}
       </div>
       ${renderPersonsStrip(node, biz)}
       <div class="card-footer">
@@ -4282,17 +4846,21 @@ function openBizModal(bizId = null) {
   const tagInput = document.getElementById('bizTagInput');
   const colorPicker = document.getElementById('bizColorPicker');
 
+  const revenueInput = document.getElementById('bizRevenueInput');
+
   // Build color picker
   let selectedColorIdx = 0;
   if (bizId) {
     const biz = state.businesses.find(b => b.id === bizId);
     nameInput.value = biz.name;
     tagInput.value = biz.tag || '';
+    revenueInput.value = biz.monthlyRevenueEstimate || '';
     selectedColorIdx = biz.colorIdx;
     eyebrow.textContent = 'Modifica Azienda';
   } else {
     nameInput.value = '';
     tagInput.value = '';
+    revenueInput.value = '';
     selectedColorIdx = state.businesses.length % PALETTE.length;
     eyebrow.textContent = 'Nuova Azienda';
   }
@@ -4323,6 +4891,7 @@ function saveBiz() {
   const name = document.getElementById('bizNameInput').value.trim();
   const tag = document.getElementById('bizTagInput').value.trim();
   const colorIdx = parseInt(document.querySelector('#bizColorPicker .selected')?.dataset.colorIdx || 0);
+  const revenue = parseFloat(document.getElementById('bizRevenueInput').value) || 0;
 
   if (!name) {
     document.getElementById('bizNameInput').focus();
@@ -4334,9 +4903,14 @@ function saveBiz() {
     biz.name = name;
     biz.tag = tag;
     biz.colorIdx = colorIdx;
+    biz.monthlyRevenueEstimate = revenue;
     showToast('Azienda aggiornata');
   } else {
-    const newBiz = { id: uid(), name, tag, colorIdx, tree: null };
+    const newBiz = {
+      id: uid(), name, tag, colorIdx,
+      tree: null, businesses: [], persons: [],
+      monthlyRevenueEstimate: revenue
+    };
     state.businesses.push(newBiz);
     state.activeBizId = newBiz.id;
     showToast('Azienda creata');
@@ -4476,6 +5050,7 @@ function openPersonModal(ctx) {
     nameInput.value = person.name || '';
     tempNodePhoto = person.photo || null;
     tempNodeBusinessIds = Array.isArray(person.businessIds) ? [...person.businessIds] : [];
+    tempNodeCompensations = (person.compensations || []).map(c => ({ ...c }));
     eyebrow.textContent = 'Modifica persona';
     titleEl.innerHTML = 'Modifica <em>persona</em>';
 
@@ -4504,6 +5079,7 @@ function openPersonModal(ctx) {
     nameInput.value = '';
     tempNodePhoto = null;
     tempNodeBusinessIds = [];
+    tempNodeCompensations = [];
     eyebrow.textContent = 'Aggiungi persona al ruolo';
     unlinkBtn.style.display = 'none';
     deleteBtn.style.display = 'none';
@@ -4529,8 +5105,21 @@ function openPersonModal(ctx) {
   setupAvatarUploader();
   updateNodeAvatarPreview();
   renderNodeBusinessPicker();
+  renderCompensationLines();
 
   nameInput.oninput = updateNodeAvatarPreview;
+
+  // Wire the "+ Aggiungi linea" button (idempotent)
+  const compAddBtn = document.getElementById('personCompAddBtn');
+  if (compAddBtn) {
+    compAddBtn.onclick = () => {
+      tempNodeCompensations.push({
+        id: uid(), type: 'fixed_monthly', label: '', amount: 0,
+        quantityPerMonth: 1, unit: '', roleId: null
+      });
+      renderCompensationLines();
+    };
+  }
 
   modal.classList.add('open');
   setTimeout(() => {
@@ -4541,6 +5130,104 @@ function openPersonModal(ctx) {
       nameInput.focus();
     }
   }, 50);
+}
+
+function renderCompensationLines() {
+  const container = document.getElementById('personCompList');
+  const totalEl = document.getElementById('personCompTotal');
+  if (!container) return;
+  const ctx = editingPersonCtx;
+  const azienda = ctx && state.businesses.find(b => b.id === ctx.bizId);
+  if (!azienda) return;
+
+  // Collect all roles in the azienda for the "riferito a" dropdown
+  const allRoles = [];
+  const walkRoles = (role) => {
+    if (!role) return;
+    allRoles.push(role);
+    (role.children || []).forEach(walkRoles);
+  };
+  if (azienda.tree) walkRoles(azienda.tree);
+
+  if (tempNodeCompensations.length === 0) {
+    container.innerHTML = '';
+    totalEl.innerHTML = '';
+    return;
+  }
+
+  container.innerHTML = tempNodeCompensations.map((line, idx) => {
+    const t = COMPENSATION_TYPES[line.type] || COMPENSATION_TYPES.fixed_monthly;
+    return `
+      <div class="comp-line" data-idx="${idx}">
+        <select data-field="type">
+          ${Object.entries(COMPENSATION_TYPES).map(([k, v]) =>
+            `<option value="${k}" ${line.type === k ? 'selected' : ''}>${v.label}</option>`
+          ).join('')}
+        </select>
+        <input type="text" data-field="label" placeholder="Etichetta (es. Stipendio, Video std)" value="${escapeHtml(line.label || '')}">
+        <div class="comp-amount-wrap" data-suffix="${escapeHtml(t.isPct ? '%' : '€')}">
+          <input type="number" min="0" step="${t.isPct ? '0.1' : '1'}" data-field="amount" value="${line.amount || 0}" placeholder="0">
+        </div>
+        ${t.needsQty
+          ? `<input type="number" min="0" step="1" data-field="quantityPerMonth" value="${line.quantityPerMonth || 0}" placeholder="qty/mese" title="Quantità mensile stimata">`
+          : (t.isPct
+              ? `<input type="text" disabled value="su fatturato" title="Usa il fatturato mensile dell'azienda" style="font-style:italic;color:var(--ink-mute);">`
+              : `<input type="text" disabled value="—" style="color:var(--ink-mute);">`)}
+        <button class="comp-del-btn" data-act="del" title="Elimina linea">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
+        </button>
+        <div class="comp-row-2">
+          <select data-field="roleId">
+            <option value="">Tutti i ruoli (generico, spalmato equamente)</option>
+            ${allRoles.map(r => `<option value="${r.id}" ${line.roleId === r.id ? 'selected' : ''}>Solo ruolo: ${escapeHtml(r.title || '—')}${r.dept ? ' · ' + escapeHtml(r.dept) : ''}</option>`).join('')}
+          </select>
+          <div style="display:flex;align-items:center;justify-content:flex-end;font-family:var(--mono);font-size:11px;color:var(--amber);font-weight:600;">
+            = ${formatEuro(lineMonthlyCost(line, azienda))} / mese
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Wire change handlers
+  container.querySelectorAll('.comp-line').forEach(el => {
+    const idx = +el.dataset.idx;
+    el.querySelectorAll('[data-field]').forEach(input => {
+      input.addEventListener('input', () => {
+        const f = input.dataset.field;
+        let v = input.value;
+        if (f === 'amount' || f === 'quantityPerMonth') v = parseFloat(v) || 0;
+        if (f === 'roleId') v = v || null;
+        tempNodeCompensations[idx][f] = v;
+        if (f === 'type') {
+          // Re-render to update which fields are visible
+          renderCompensationLines();
+        } else {
+          // Just update the running total
+          updateCompTotal();
+        }
+      });
+    });
+    el.querySelector('[data-act="del"]').addEventListener('click', (e) => {
+      e.stopPropagation();
+      tempNodeCompensations.splice(idx, 1);
+      renderCompensationLines();
+    });
+  });
+
+  updateCompTotal();
+}
+
+function updateCompTotal() {
+  const totalEl = document.getElementById('personCompTotal');
+  if (!totalEl) return;
+  const ctx = editingPersonCtx;
+  const azienda = ctx && state.businesses.find(b => b.id === ctx.bizId);
+  if (!azienda) { totalEl.innerHTML = ''; return; }
+  const total = tempNodeCompensations.reduce((s, l) => s + lineMonthlyCost(l, azienda), 0);
+  totalEl.innerHTML = total > 0
+    ? `Totale stimato: <strong>${formatEuro(total)}</strong> / mese`
+    : '';
 }
 
 function renderPersonPickerList() {
@@ -4615,6 +5302,7 @@ function closePersonModal() {
   editingPersonCtx = null;
   tempNodePhoto = null;
   tempNodeBusinessIds = [];
+  tempNodeCompensations = [];
 }
 
 function savePerson() {
@@ -4629,6 +5317,18 @@ function savePerson() {
 
   const photo = tempNodePhoto || null;
   const businessIds = [...tempNodeBusinessIds];
+  // Filter out empty/zero-effect lines silently
+  const compensations = tempNodeCompensations
+    .filter(l => (Number(l.amount) || 0) > 0 || (l.label || '').trim())
+    .map(l => ({
+      id: l.id || uid(),
+      type: l.type,
+      label: (l.label || '').trim(),
+      amount: Number(l.amount) || 0,
+      quantityPerMonth: Number(l.quantityPerMonth) || 0,
+      unit: (l.unit || '').trim(),
+      roleId: l.roleId || null
+    }));
 
   if (ctx.personId) {
     // EDIT existing master person (propagates to all roles)
@@ -4637,11 +5337,12 @@ function savePerson() {
       person.name = name;
       person.photo = photo;
       person.businessIds = businessIds;
+      person.compensations = compensations;
       showToast('Persona aggiornata');
     }
   } else {
     // CREATE new master + link to role
-    const newPerson = { id: uid(), name, photo, businessIds };
+    const newPerson = { id: uid(), name, photo, businessIds, compensations };
     azienda.persons.push(newPerson);
     const role = findNode(azienda.tree, ctx.roleId);
     if (role) linkPersonToRole(role, newPerson.id);
@@ -5019,6 +5720,9 @@ function renderLanesView() {
   const palette = PALETTE[azienda.colorIdx % PALETTE.length];
   canvas.style.setProperty('--biz-color', palette.color);
 
+  // KPI bar when budget mode is on
+  if (state.budgetMode) canvas.appendChild(buildKpiBar(azienda));
+
   const lines = Array.isArray(azienda.businesses) ? azienda.businesses : [];
 
   // ---------- header ----------
@@ -5190,6 +5894,268 @@ function renderLanesView() {
     openBusinessLineModal({ bizId: azienda.id });
   });
   grid.appendChild(addLane);
+}
+
+/* ======================================================================
+   PERSONE VIEW — master list per azienda with duplicate detection
+   ====================================================================== */
+
+let peopleSearchQuery = '';
+
+function renderPeopleView() {
+  const canvas = document.getElementById('canvas');
+  canvas.innerHTML = '';
+
+  const azienda = state.businesses.find(b => b.id === state.activeBizId);
+  if (!azienda) return;
+
+  // KPI bar above (only when budget mode is on)
+  if (state.budgetMode) canvas.appendChild(buildKpiBar(azienda));
+
+  const wrap = document.createElement('div');
+  wrap.className = 'people-wrap';
+  canvas.appendChild(wrap);
+
+  const palette = PALETTE[azienda.colorIdx % PALETTE.length];
+  const persons = azienda.persons || [];
+  const dupes = detectDuplicatePersons(azienda);
+  const dupeIds = dupePersonIds(azienda);
+
+  // Filtered list
+  const q = (peopleSearchQuery || '').toLowerCase().trim();
+  const filtered = q
+    ? persons.filter(p => (p.name || '').toLowerCase().includes(q))
+    : persons.slice();
+
+  // Sort: duplicates first (to surface them), then alphabetical
+  filtered.sort((a, b) => {
+    const aDup = dupeIds.has(a.id) ? 1 : 0;
+    const bDup = dupeIds.has(b.id) ? 1 : 0;
+    if (aDup !== bDup) return bDup - aDup;
+    return (a.name || '').localeCompare(b.name || '');
+  });
+
+  wrap.innerHTML = `
+    <div class="people-header">
+      <div>
+        <h2 class="people-title">Persone <em>${escapeHtml(azienda.name)}</em><span class="people-count">${persons.length} totali · ${dupes.length > 0 ? `<strong style="color:var(--rose)">${dupes.length} possibili duplicati</strong>` : 'nessun duplicato rilevato'}</span></h2>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn primary" id="peopleAddBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nuova persona
+        </button>
+      </div>
+    </div>
+
+    <div class="people-toolbar">
+      <input type="text" class="people-search" id="peopleSearchInput" placeholder="Cerca per nome…" value="${escapeHtml(peopleSearchQuery)}">
+    </div>
+
+    ${dupes.length > 0 ? `
+      <div class="people-dupes-banner">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>
+          ${dupes.length} ${dupes.length === 1 ? 'persona ha' : 'persone hanno'} nomi simili.
+          Le righe evidenziate con un bordo rosa potrebbero essere duplicati — apri ciascuna e usa "Elimina persona" per cancellare quella di troppo.
+        </span>
+      </div>
+    ` : ''}
+
+    ${persons.length === 0 ? `
+      <div class="people-empty">
+        <h3 class="people-empty-title">Nessuna <em>persona</em> in azienda</h3>
+        <p class="people-empty-text">Aggiungi le persone qui — poi potrai assegnarle ai ruoli senza ridigitare i loro dati.</p>
+        <button class="btn primary" id="peopleEmptyAddBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Aggiungi la prima persona
+        </button>
+      </div>
+    ` : filtered.length === 0 ? `
+      <div class="people-empty">
+        <h3 class="people-empty-title">Nessun <em>risultato</em></h3>
+        <p class="people-empty-text">Nessuna persona corrisponde alla ricerca.</p>
+      </div>
+    ` : `
+      <div class="people-table">
+        ${filtered.map(person => renderPeopleRow(person, azienda, palette, dupeIds.has(person.id))).join('')}
+      </div>
+    `}
+  `;
+
+  // Wire interactions
+  const addBtn = document.getElementById('peopleAddBtn');
+  if (addBtn) addBtn.addEventListener('click', () => openStandalonePersonModal(azienda.id));
+  const emptyAdd = document.getElementById('peopleEmptyAddBtn');
+  if (emptyAdd) emptyAdd.addEventListener('click', () => openStandalonePersonModal(azienda.id));
+
+  const search = document.getElementById('peopleSearchInput');
+  let st;
+  search.addEventListener('input', () => {
+    clearTimeout(st);
+    st = setTimeout(() => {
+      peopleSearchQuery = search.value;
+      const pos = search.selectionStart;
+      renderPeopleView();
+      const ns = document.getElementById('peopleSearchInput');
+      if (ns) { ns.focus(); try { ns.setSelectionRange(pos, pos); } catch (e) {} }
+    }, 180);
+  });
+
+  wrap.querySelectorAll('.people-row').forEach(row => {
+    const id = row.dataset.personId;
+    row.addEventListener('click', (e) => {
+      if (e.target.closest('button')) return;
+      openStandalonePersonModal(azienda.id, id);
+    });
+    const editBtn = row.querySelector('[data-act="edit"]');
+    if (editBtn) editBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openStandalonePersonModal(azienda.id, id);
+    });
+    const delBtn = row.querySelector('[data-act="delete"]');
+    if (delBtn) delBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const person = findPersonGlobal(azienda, id);
+      if (!person) return;
+      const rolesIn = rolesUsingPerson(azienda, id);
+      const extra = rolesIn.length > 0
+        ? `\nVerrà tolta da ${rolesIn.length} ${rolesIn.length === 1 ? 'ruolo' : 'ruoli'}.`
+        : '';
+      if (!confirm(`Eliminare "${person.name}"?${extra}`)) return;
+      deletePersonGlobally(azienda, id);
+      persist(); render();
+      showToast('Persona eliminata');
+    });
+  });
+}
+
+function renderPeopleRow(person, azienda, palette, isDupe) {
+  const rolesIn = rolesUsingPerson(azienda, person.id);
+  const rolesStr = rolesIn.length
+    ? rolesIn.map(r => escapeHtml(r.title || '—')).join(' · ')
+    : '<span class="unassigned">non assegnata</span>';
+  const cost = personMonthlyCost(person, azienda);
+  const businessChips = (person.businessIds || [])
+    .map(bid => (azienda.businesses || []).find(l => l.id === bid))
+    .filter(Boolean)
+    .map(line => {
+      const p = PALETTE[(line.colorIdx ?? 0) % PALETTE.length];
+      return `<span class="biz-chip" style="color:${p.color}">${escapeHtml(line.name)}</span>`;
+    }).join('');
+
+  return `
+    <div class="people-row ${isDupe ? 'duplicate' : ''}" data-person-id="${person.id}">
+      <div class="people-row-avatar">${renderAvatar(person, palette, 'sm')}</div>
+      <div class="people-row-name">
+        ${escapeHtml(person.name || '—')}${isDupe ? '<span class="dupe-mark">possibile duplicato</span>' : ''}
+      </div>
+      <div class="people-row-roles">${rolesStr}</div>
+      <div class="people-row-businesses">${businessChips || '<span style="font-family:var(--serif);font-style:italic;font-size:11px;color:var(--ink-mute);">—</span>'}</div>
+      <div class="people-row-cost ${cost === 0 ? 'zero' : ''}">${cost > 0 ? formatEuro(cost) + '<span style="font-size:9px;color:var(--ink-mute);margin-left:3px;">/mese</span>' : '—'}</div>
+      <div class="people-row-actions">
+        <button data-act="edit" title="Modifica">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button data-act="delete" class="danger" title="Elimina">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+/** Open person modal NOT tied to a specific role (from Persone view). */
+function openStandalonePersonModal(bizId, personId = null) {
+  openPersonModal({ bizId, roleId: null, personId });
+}
+
+/* ======================================================================
+   KPI BAR (shown when budget mode is on)
+   ====================================================================== */
+
+function buildKpiBar(azienda) {
+  const bar = document.createElement('div');
+  bar.className = 'kpi-bar';
+
+  const total = totalMonthlyCost(azienda);
+  const byRole = costByRole(azienda);
+  const byBiz = costByBusiness(azienda);
+
+  // Resolve role IDs → titles
+  const allRoles = [];
+  const walk = (r) => {
+    if (!r) return;
+    allRoles.push(r);
+    (r.children || []).forEach(walk);
+  };
+  if (azienda.tree) walk(azienda.tree);
+
+  const topRoles = [...byRole.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4)
+    .map(([rid, v]) => ({ role: allRoles.find(r => r.id === rid), cost: v }))
+    .filter(x => x.role);
+
+  const topBiz = [...byBiz.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4)
+    .map(([bid, v]) => ({
+      line: (azienda.businesses || []).find(l => l.id === bid),
+      cost: v
+    }))
+    .filter(x => x.line);
+
+  const revenue = Number(azienda.monthlyRevenueEstimate) || 0;
+  const margin = revenue - total;
+
+  bar.innerHTML = `
+    <div class="kpi-block">
+      <div class="kpi-label">Costo mensile totale</div>
+      <div class="kpi-value">${formatEuro(total)}</div>
+      <div class="kpi-sub">${(azienda.persons || []).length} persone</div>
+    </div>
+    ${revenue > 0 ? `
+      <div class="kpi-block">
+        <div class="kpi-label">Fatturato stimato</div>
+        <div class="kpi-value" style="color:var(--sage)">${formatEuro(revenue)}</div>
+        <div class="kpi-sub">mensile</div>
+      </div>
+      <div class="kpi-block">
+        <div class="kpi-label">Margine stimato</div>
+        <div class="kpi-value" style="color:${margin >= 0 ? 'var(--sage)' : 'var(--rose)'}">${formatEuro(margin)}</div>
+        <div class="kpi-sub">${revenue > 0 ? Math.round((margin / revenue) * 100) : 0}% del fatturato</div>
+      </div>
+    ` : ''}
+    ${topBiz.length > 0 ? `
+      <div class="kpi-block">
+        <div class="kpi-label">Per business</div>
+        <div class="kpi-list">
+          ${topBiz.map(({ line, cost }) => {
+            const p = PALETTE[(line.colorIdx ?? 0) % PALETTE.length];
+            return `<div class="kpi-list-row">
+              <span class="name"><span class="dot" style="background:${p.color}"></span>${escapeHtml(line.name)}</span>
+              <span class="val">${formatEuro(cost)}</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    ` : ''}
+    ${topRoles.length > 0 ? `
+      <div class="kpi-block">
+        <div class="kpi-label">Top ruoli per costo</div>
+        <div class="kpi-list">
+          ${topRoles.map(({ role, cost }) =>
+            `<div class="kpi-list-row">
+              <span class="name">${escapeHtml(role.title || '—')}</span>
+              <span class="val">${formatEuro(cost)}</span>
+            </div>`
+          ).join('')}
+        </div>
+      </div>
+    ` : ''}
+  `;
+  return bar;
 }
 
 /* ======================================================================
@@ -5716,8 +6682,8 @@ function render() {
   renderTopbar();
   const canvas = document.getElementById('canvas');
   const wrap = document.querySelector('.canvas-wrap');
-  canvas.classList.remove('dashboard-mode', 'lanes-mode');
-  wrap.classList.remove('dashboard-mode', 'lanes-mode');
+  canvas.classList.remove('dashboard-mode', 'lanes-mode', 'people-mode');
+  wrap.classList.remove('dashboard-mode', 'lanes-mode', 'people-mode');
 
   if (state.activeView === 'dashboard') {
     canvas.classList.add('dashboard-mode');
@@ -5727,6 +6693,10 @@ function render() {
     canvas.classList.add('lanes-mode');
     wrap.classList.add('lanes-mode');
     renderLanesView();
+  } else if (state.activeView === 'people') {
+    canvas.classList.add('people-mode');
+    wrap.classList.add('people-mode');
+    renderPeopleView();
   } else {
     // 'tree' — Vista Aziendale (default)
     renderCanvas();
@@ -5736,6 +6706,12 @@ function render() {
 
 function toggleSidebarCompact() {
   state.compactSidebar = !state.compactSidebar;
+  persist();
+  render();
+}
+
+function toggleBudgetMode() {
+  state.budgetMode = !state.budgetMode;
   persist();
   render();
 }
