@@ -2984,7 +2984,7 @@
     </div>
     <div class="sidebar-footer" style="border-top:1px solid var(--line-soft);">
       <span class="user-email" id="userEmail" title=""></span>
-      <span id="footerVersion">v2.0</span>
+      <span id="footerVersion">v2.0.1</span>
     </div>
   </aside>
 
@@ -3286,14 +3286,47 @@ const uid = () => Math.random().toString(36).slice(2, 9);
 -------------------------------------------------------------- */
 let saveTimer = null;
 let savingInFlight = false;
+let lastCloudSaveFailed = false;
+
+// IMPORTANT: every save goes to BOTH localStorage and Supabase. If Supabase
+// fails (network, RLS, auth), the local copy keeps the data safe so we can
+// recover later. On boot, if the cloud is empty but localStorage has data
+// we restore from localStorage.
+const LOCAL_BACKUP_KEY = 'atlas_state_backup_v2';
+
+function saveToLocalBackup() {
+  try {
+    localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify({
+      savedAt: Date.now(),
+      userId: currentUser ? currentUser.id : null,
+      state
+    }));
+  } catch (e) {
+    console.warn('Local backup write failed', e);
+  }
+}
+
+function readLocalBackup() {
+  try {
+    const raw = localStorage.getItem(LOCAL_BACKUP_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (e) { return null; }
+}
 
 function persist() {
+  // Always write to local backup first — instant, can't fail in a useful way
+  saveToLocalBackup();
   setSaveStatus('saving');
   clearTimeout(saveTimer);
   saveTimer = setTimeout(async () => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      // No cloud session — keep showing "local only" so the user notices
+      setSaveStatus('local-only');
+      showCloudWarningBanner('Sessione non collegata al cloud. I dati sono salvati nel browser ma non sincronizzati.');
+      return;
+    }
     if (savingInFlight) {
-      // Schedule a retry shortly so the latest state still gets flushed
       saveTimer = setTimeout(persist, 200);
       return;
     }
@@ -3306,10 +3339,14 @@ function persist() {
           { onConflict: 'user_id' }
         );
       if (error) throw error;
+      lastCloudSaveFailed = false;
+      hideCloudWarningBanner();
       setSaveStatus('saved');
     } catch (e) {
-      console.error('Save failed', e);
+      console.error('CLOUD SAVE FAILED', e);
+      lastCloudSaveFailed = true;
       setSaveStatus('error');
+      showCloudWarningBanner('Salvataggio sul cloud fallito. I dati sono al sicuro nel browser. Apri la console (F12) e leggi l\'errore, oppure clicca "Esporta JSON" in topbar per un backup manuale. Errore: ' + (e.message || e));
     } finally {
       savingInFlight = false;
     }
@@ -3317,27 +3354,84 @@ function persist() {
 }
 
 async function loadState() {
-  if (!currentUser) { seedExample(); return; }
-  try {
-    const { data, error } = await sb
-      .from('app_state')
-      .select('data')
-      .eq('user_id', currentUser.id)
-      .maybeSingle();
-    if (error) throw error;
-    if (data && data.data && Array.isArray(data.data.businesses)) {
-      state = data.data;
-      migrateState();
-      return;
+  // 1) Try the cloud first (if we have a session)
+  if (currentUser) {
+    try {
+      const { data, error } = await sb
+        .from('app_state')
+        .select('data')
+        .eq('user_id', currentUser.id)
+        .maybeSingle();
+      if (error) throw error;
+      if (data && data.data && Array.isArray(data.data.businesses)) {
+        state = data.data;
+        migrateState();
+        return;
+      }
+    } catch (e) {
+      console.warn('Cloud load failed, will try local backup', e);
     }
-  } catch (e) {
-    console.warn('Load failed, falling back to seed', e);
   }
-  // First-time user — give them the example data and persist it to cloud
+  // 2) Fall back to local backup, if any
+  const backup = readLocalBackup();
+  if (backup && backup.state && Array.isArray(backup.state.businesses)) {
+    state = backup.state;
+    migrateState();
+    // If we DO have a cloud session, immediately try to push the backup up
+    if (currentUser) setTimeout(persist, 200);
+    showCloudWarningBanner('Dati ripristinati dal backup locale (Supabase era vuoto o irraggiungibile). Verranno risincronizzati appena possibile.');
+    return;
+  }
+  // 3) Genuinely first-time user → seed
   seedExample();
-  // Save the seed asynchronously so the row exists on first visit
-  setTimeout(persist, 100);
+  if (currentUser) setTimeout(persist, 100);
 }
+
+// ---------- Cloud-save warning banner (visible) ----------
+function showCloudWarningBanner(msg) {
+  let el = document.getElementById('cloudWarningBanner');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'cloudWarningBanner';
+    el.style.cssText = `
+      position: fixed; top: 0; left: 0; right: 0; z-index: 3000;
+      background: #c47c1f; color: #2a2620;
+      font-family: -apple-system, sans-serif; font-size: 13px; font-weight: 500;
+      padding: 12px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      display: flex; align-items: center; gap: 12px;
+    `;
+    el.innerHTML = `
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" style="flex-shrink:0;">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/>
+        <line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+      <span id="cloudWarningText" style="flex:1;"></span>
+      <button id="cloudWarningDismiss" style="background:rgba(0,0,0,0.18);border:none;color:#2a2620;padding:6px 12px;font-weight:600;cursor:pointer;border-radius:3px;font-family:inherit;font-size:11px;">CHIUDI</button>
+    `;
+    document.body.appendChild(el);
+    document.getElementById('cloudWarningDismiss').addEventListener('click', hideCloudWarningBanner);
+  }
+  document.getElementById('cloudWarningText').textContent = msg;
+  el.style.display = 'flex';
+}
+function hideCloudWarningBanner() {
+  const el = document.getElementById('cloudWarningBanner');
+  if (el) el.style.display = 'none';
+}
+
+// Expose a helper the user can call from the browser console:
+//   atlasExport()  → downloads atlas-backup.json
+window.atlasExport = function() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'atlas-backup-' + new Date().toISOString().slice(0,19).replace(/[:T]/g,'-') + '.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  console.log('Atlas backup downloaded.');
+};
 
 function migrateState() {
   // v1.0 → v1.1: Migrate from cosa/come/quando arrays → activities array
@@ -3448,14 +3542,19 @@ function migrateState() {
 function setSaveStatus(status) {
   const dot = document.getElementById('saveDot');
   const text = document.getElementById('saveText');
+  dot.classList.remove('saving');
+  dot.style.background = '';
   if (status === 'saving') {
     dot.classList.add('saving');
-    text.textContent = 'salvataggio...';
+    text.textContent = 'salvataggio…';
   } else if (status === 'saved') {
-    dot.classList.remove('saving');
-    text.textContent = 'salvato';
+    text.textContent = 'salvato (cloud)';
+  } else if (status === 'local-only') {
+    dot.style.background = 'var(--citrus)';
+    text.textContent = 'solo locale ⚠';
   } else {
-    text.textContent = 'errore';
+    dot.style.background = 'var(--rose)';
+    text.textContent = 'errore salvataggio ⚠';
   }
 }
 
