@@ -2246,6 +2246,55 @@
     zoom: var(--zoom, 1);
   }
 
+  /* Drag-to-pan the canvas */
+  .canvas-wrap:not(.dashboard-mode):not(.people-mode) {
+    cursor: grab;
+  }
+  .canvas-wrap.is-panning {
+    cursor: grabbing !important;
+    user-select: none;
+  }
+  .canvas-wrap.is-panning * { pointer-events: none; }
+
+  /* Collapsed subtree indicator: small badge under a collapsed role card */
+  .collapsed-badge {
+    position: absolute;
+    bottom: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-elev);
+    border: 1px solid var(--biz-color, var(--line));
+    color: var(--biz-color, var(--ink-dim));
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    padding: 3px 8px;
+    border-radius: 10px;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .collapsed-badge::before {
+    content: '+';
+    margin-right: 4px;
+    font-size: 11px;
+  }
+
+  /* Collapse toggle button on the card footer */
+  .card-icon-btn.toggle-collapse {
+    transition: transform 0.2s ease;
+  }
+  .card-icon-btn.toggle-collapse.collapsed {
+    color: var(--biz-color, var(--amber));
+    background: rgba(232,160,74,0.1);
+  }
+  .card-icon-btn.toggle-collapse.collapsed svg {
+    transform: rotate(-90deg);
+  }
+  .card-icon-btn.toggle-collapse svg {
+    transition: transform 0.2s ease;
+  }
+
   /* ---------- PROCEDURE EDITOR (full-screen, Notion-like) ---------- */
   .procedure-overlay {
     position: fixed;
@@ -2984,7 +3033,7 @@
     </div>
     <div class="sidebar-footer" style="border-top:1px solid var(--line-soft);">
       <span class="user-email" id="userEmail" title=""></span>
-      <span id="footerVersion">v2.0.1</span>
+      <span id="footerVersion">v2.1</span>
     </div>
   </aside>
 
@@ -4072,8 +4121,9 @@ function renderTopbar() {
   const zoomHtml = `
     <div class="zoom-control" title="Zoom — Cmd+/-/0 oppure click">
       <button class="zoom-btn" id="zoomOutBtn" title="Zoom out (Cmd-)" ${state.zoom <= ZOOM_STEPS[0] ? 'disabled' : ''}>−</button>
-      <button class="zoom-level" id="zoomLevelBtn" title="Reset (Cmd+0)">${zoomPct}%</button>
+      <button class="zoom-level" id="zoomLevelBtn" title="Reset 100% (Cmd+0)">${zoomPct}%</button>
       <button class="zoom-btn" id="zoomInBtn" title="Zoom in (Cmd+)" ${state.zoom >= ZOOM_STEPS[ZOOM_STEPS.length - 1] ? 'disabled' : ''}>+</button>
+      <button class="zoom-btn" id="zoomFitBtn" title="Adatta alla finestra" style="border-left:1px solid var(--line);">⛶</button>
     </div>
   `;
 
@@ -4103,6 +4153,7 @@ function renderTopbar() {
   document.getElementById('zoomOutBtn').addEventListener('click', () => zoomBy(-1));
   document.getElementById('zoomInBtn').addEventListener('click', () => zoomBy(+1));
   document.getElementById('zoomLevelBtn').addEventListener('click', () => setZoom(1));
+  document.getElementById('zoomFitBtn').addEventListener('click', fitToScreen);
   document.getElementById('budgetToggleBtn').addEventListener('click', toggleBudgetMode);
 
   // View toggle
@@ -4770,6 +4821,11 @@ function renderTreeNode(node, biz, isRoot = false) {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
           </button>
           ` : ''}
+          ${(node.children || []).length > 0 ? `
+          <button class="card-icon-btn toggle-collapse ${node.collapsed ? 'collapsed' : ''}" data-act="collapse" title="${node.collapsed ? 'Espandi sotto-ruoli' : 'Nascondi sotto-ruoli'}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          ` : ''}
           <button class="card-icon-btn toggle-expand" data-act="toggle" title="Procedure del ruolo: cosa, come, quando">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
@@ -4777,6 +4833,9 @@ function renderTreeNode(node, biz, isRoot = false) {
       </div>
     </div>
     ${renderExpansion(node, biz)}
+    ${node.collapsed && (node.children || []).length > 0
+      ? `<div class="collapsed-badge">${countChildren(node)} ruoli nascosti</div>`
+      : ''}
   `;
 
   // Card actions (footer buttons)
@@ -4790,6 +4849,11 @@ function renderTreeNode(node, biz, isRoot = false) {
       else if (act === 'toggle') {
         card.classList.toggle('expanded');
         card.draggable = !isRoot && !card.classList.contains('expanded');
+      }
+      else if (act === 'collapse') {
+        node.collapsed = !node.collapsed;
+        persist();
+        render();
       }
     });
   });
@@ -4898,8 +4962,8 @@ function renderTreeNode(node, biz, isRoot = false) {
 
   wrap.appendChild(card);
 
-  // CHILDREN
-  if (node.children && node.children.length > 0) {
+  // CHILDREN — skipped entirely when this role is collapsed
+  if (node.children && node.children.length > 0 && !node.collapsed) {
     const childrenWrap = document.createElement('div');
     childrenWrap.className = 'tree-children-wrap' + (node.children.length === 1 ? ' single-child' : '');
 
@@ -6849,6 +6913,85 @@ function zoomBy(direction) {
   setZoom(next);
 }
 
+/**
+ * Auto-fit: compute the bounding box of the tree (in unzoomed coordinates),
+ * pick the largest zoom that makes it fit inside the canvas-wrap, then
+ * centre the scroll so root is on top.
+ */
+function fitToScreen() {
+  const wrap = document.querySelector('.canvas-wrap');
+  const tree = wrap && wrap.querySelector('.tree, .lanes-wrap');
+  if (!wrap || !tree) return;
+
+  // Temporarily reset zoom to measure unscaled dimensions
+  const prev = state.zoom;
+  tree.style.zoom = '1';
+  // Force reflow
+  const treeW = tree.scrollWidth;
+  const treeH = tree.scrollHeight;
+  tree.style.zoom = '';   // back to CSS var
+  if (treeW <= 0 || treeH <= 0) { setZoom(prev); return; }
+
+  const padding = 80;
+  const availW = wrap.clientWidth  - padding;
+  const availH = wrap.clientHeight - padding;
+  let z = Math.min(availW / treeW, availH / treeH, 1);
+  z = Math.max(0.5, Math.min(2, z));
+
+  // Snap to one of the preset steps (closest below)
+  const snapped = ZOOM_STEPS.filter(s => s <= z + 0.001).pop() ?? ZOOM_STEPS[0];
+  setZoom(snapped);
+
+  // After zoom applies, center the scroll horizontally on the root
+  requestAnimationFrame(() => {
+    const scaledW = wrap.firstElementChild?.scrollWidth || tree.scrollWidth;
+    const target = Math.max(0, (scaledW - wrap.clientWidth) / 2);
+    wrap.scrollLeft = target;
+    wrap.scrollTop = 0;
+  });
+}
+
+/* ----------- Drag-to-pan on canvas ----------- */
+let _panState = null;
+function setupCanvasPan() {
+  const wrap = document.querySelector('.canvas-wrap');
+  if (!wrap || wrap.dataset.panWired) return;
+  wrap.dataset.panWired = '1';
+
+  wrap.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;                                     // only left-click
+    if (wrap.classList.contains('dashboard-mode') || wrap.classList.contains('people-mode')) return;
+    // Ignore clicks that started on an interactive element
+    if (e.target.closest('.node-card, .lane, .lane-add, .lanes-header button, input, button, select, [contenteditable]')) return;
+    _panState = {
+      startX: e.clientX,
+      startY: e.clientY,
+      scrollLeft: wrap.scrollLeft,
+      scrollTop: wrap.scrollTop,
+      moved: false
+    };
+    wrap.classList.add('is-panning');
+    e.preventDefault();
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!_panState) return;
+    const dx = e.clientX - _panState.startX;
+    const dy = e.clientY - _panState.startY;
+    if (Math.abs(dx) + Math.abs(dy) > 3) _panState.moved = true;
+    wrap.scrollLeft = _panState.scrollLeft - dx;
+    wrap.scrollTop  = _panState.scrollTop  - dy;
+  });
+
+  const endPan = () => {
+    if (!_panState) return;
+    _panState = null;
+    wrap.classList.remove('is-panning');
+  };
+  window.addEventListener('mouseup', endPan);
+  window.addEventListener('mouseleave', endPan);
+}
+
 /* ----------- WIRE GLOBAL EVENTS ----------- */
 document.getElementById('addBizBtn').addEventListener('click', () => openBizModal());
 document.getElementById('bizModalCancel').addEventListener('click', closeBizModal);
@@ -6986,6 +7129,7 @@ sb.auth.onAuthStateChange((_event, session) => {
     }
     await handleSession(session);
     setSaveStatus('saved');
+    setupCanvasPan();
   } catch (e) {
     console.error('Boot failed', e);
     showSetupError('Errore di avvio', e.message || String(e));
