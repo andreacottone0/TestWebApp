@@ -33,3 +33,8 @@ dist/
 *.log
 npm-debug.log*
 .vercel
+
+# local-only
+supabase/.temp/
+recovery-backup-*.json
+!recovery-backup-newera.json
